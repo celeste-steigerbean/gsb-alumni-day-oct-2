@@ -1,0 +1,268 @@
+/* Projection screen. Built for 1920x1080, read at fifteen feet.
+   Every size scales from --scale so the room can be tuned with a URL flag.
+   Nothing renders below 22px at scale 1. */
+
+.stage {
+  --scale: 1;
+  --gutter: calc(38px * var(--scale));
+  --card-gap: calc(14px * var(--scale));
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--gutter);
+  background: var(--midnight);
+  color: var(--ivory);
+  overflow: hidden;
+  cursor: none;
+  user-select: none;
+}
+
+.stage::-webkit-scrollbar {
+  display: none;
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: calc(30px * var(--scale));
+  padding-bottom: calc(16px * var(--scale));
+  border-bottom: 1px solid var(--hairline);
+  flex: 0 0 auto;
+}
+
+.mark {
+  font-size: calc(23px * var(--scale));
+  letter-spacing: 0.26em;
+  line-height: 1;
+}
+
+.headline {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: calc(34px * var(--scale));
+  line-height: 1;
+  color: var(--ivory);
+  letter-spacing: 0.01em;
+}
+
+.tally {
+  display: flex;
+  align-items: baseline;
+  gap: calc(14px * var(--scale));
+  flex: 0 0 auto;
+}
+
+.tallyNumber {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: calc(62px * var(--scale));
+  line-height: 0.85;
+  color: var(--ivory);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.tallyLabel {
+  font-size: calc(22px * var(--scale));
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  line-height: 1.2;
+}
+
+.statusDot {
+  display: inline-block;
+  width: calc(9px * var(--scale));
+  height: calc(9px * var(--scale));
+  border-radius: 50%;
+  background: var(--gold);
+  margin-left: calc(10px * var(--scale));
+  vertical-align: middle;
+  transition: opacity 400ms linear;
+}
+
+.statusDot[data-status="stalled"] {
+  opacity: 0.2;
+}
+
+/* Columns ---------------------------------------------------------------- */
+
+.columns {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: calc(18px * var(--scale));
+  padding-top: calc(18px * var(--scale));
+  min-height: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.columnHead {
+  flex: 0 0 auto;
+  padding-bottom: calc(10px * var(--scale));
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: calc(14px * var(--scale));
+}
+
+.columnName {
+  display: flex;
+  align-items: baseline;
+  gap: calc(9px * var(--scale));
+  font-size: calc(24px * var(--scale));
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  line-height: 1.15;
+}
+
+.columnCount {
+  font-family: var(--serif);
+  font-size: calc(24px * var(--scale));
+  color: var(--muted);
+  letter-spacing: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.columnHelper {
+  margin-top: calc(7px * var(--scale));
+  font-size: calc(22px * var(--scale));
+  line-height: 1.3;
+  color: var(--muted);
+  /* Three lines, always. Uneven header heights would stagger the six rules
+     across the screen, which is the first thing the room would notice. */
+  height: calc(1.3em * 3);
+  overflow: hidden;
+}
+
+.viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  /* Fade the loop seam rather than cutting a card in half. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 calc(16px * var(--scale)),
+    #000 calc(100% - 26px * var(--scale)),
+    transparent 100%
+  );
+}
+
+.track {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+  will-change: transform;
+}
+
+.track[data-scrolling="true"] {
+  animation: loop var(--loop-duration, 60s) linear infinite;
+}
+
+.segment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+/* Hold at the top for the first slice of every cycle so the newest cards are
+   readable before the column starts drifting. The end state is exactly one
+   segment up, which is the duplicate's top, so the wrap is invisible. */
+@keyframes loop {
+  0%,
+  8% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, var(--loop-shift, 0px), 0);
+  }
+}
+
+/* Cards ------------------------------------------------------------------ */
+
+.card {
+  padding: calc(15px * var(--scale)) calc(16px * var(--scale));
+  background: var(--panel);
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.cardFunction {
+  display: block;
+  font-size: calc(22px * var(--scale));
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  line-height: 1.25;
+  margin-bottom: calc(8px * var(--scale));
+}
+
+.cardTask {
+  display: block;
+  font-size: calc(24px * var(--scale));
+  line-height: 1.36;
+  color: var(--ivory);
+  overflow-wrap: break-word;
+}
+
+.enter {
+  animation: arrive 900ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translate3d(0, calc(-18px * var(--scale)), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.columnEmpty {
+  font-size: calc(22px * var(--scale));
+  line-height: 1.4;
+  color: var(--muted);
+  opacity: 0.55;
+  padding-top: calc(6px * var(--scale));
+}
+
+/* Empty room ------------------------------------------------------------- */
+
+.opening {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.openingTitle {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: calc(58px * var(--scale));
+  line-height: 1.15;
+  color: var(--ivory);
+}
+
+.openingLine {
+  margin-top: calc(18px * var(--scale));
+  font-size: calc(26px * var(--scale));
+  text-transform: uppercase;
+  letter-spacing: 0.26em;
+  color: var(--gold);
+}

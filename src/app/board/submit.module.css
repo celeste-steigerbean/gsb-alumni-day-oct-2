@@ -1,0 +1,379 @@
+/* Submit screen. Phone first. Nothing below 14px. */
+
+.page {
+  min-height: 100dvh;
+  padding: 28px 20px 72px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mark {
+  font-size: 15px;
+  letter-spacing: 0.24em;
+}
+
+.liveDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-left: 8px;
+  vertical-align: middle;
+  transition: opacity 240ms linear;
+}
+
+.liveDot[data-status="stalled"] {
+  opacity: 0.25;
+}
+
+.title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 26px 0 10px;
+  letter-spacing: 0.01em;
+}
+
+.lede {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0 0 26px;
+  line-height: 1.75;
+}
+
+/* Proof strip ------------------------------------------------------------ */
+
+.proof {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--panel-inset);
+  padding: 20px 18px;
+  margin-bottom: 34px;
+}
+
+.proofHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.proofCount {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 46px;
+  line-height: 1;
+  color: var(--ivory);
+}
+
+.proofLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  line-height: 1.4;
+}
+
+.proofList {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--hairline);
+  display: grid;
+  gap: 14px;
+}
+
+.proofItem {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.proofItem .proofFunction {
+  display: block;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+
+.proofEmpty {
+  margin: 16px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* Form ------------------------------------------------------------------- */
+
+.step {
+  margin-bottom: 34px;
+}
+
+.stepHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.stepNumber {
+  font-family: var(--serif);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+
+.stepLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+
+.buckets {
+  display: grid;
+  gap: 10px;
+}
+
+.bucket {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  min-height: 76px;
+  background: var(--panel-inset);
+  border: 1px solid var(--hairline);
+  border-left: 2px solid transparent;
+  border-radius: var(--radius);
+}
+
+.bucket[data-selected="true"] {
+  background: var(--panel);
+  border-color: var(--hairline-strong);
+  border-left-color: var(--gold);
+}
+
+.bucketName {
+  display: block;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.bucket[data-selected="true"] .bucketName {
+  color: var(--gold);
+}
+
+.bucketHelper {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.bucket[data-selected="true"] .bucketHelper {
+  color: var(--ivory);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 15px 18px;
+  font-size: 17px;
+  line-height: 1.6;
+  background: var(--panel-inset);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--ivory);
+  resize: vertical;
+}
+
+.textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.counter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.counter[data-over="true"] {
+  color: var(--gold);
+}
+
+.error {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ivory);
+  border-left: 2px solid var(--gold);
+  padding-left: 12px;
+}
+
+.submit {
+  width: 100%;
+  min-height: 60px;
+  padding: 18px 24px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  background: var(--gold);
+  color: var(--midnight);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.submit:disabled {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--hairline);
+  cursor: default;
+}
+
+.footnote {
+  margin-top: 18px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* Post submit ------------------------------------------------------------ */
+
+.thanks {
+  border: 1px solid var(--hairline-strong);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 22px 20px;
+  margin-bottom: 34px;
+}
+
+.thanksTitle {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0 0 8px;
+}
+
+.thanksBody {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.actionButton {
+  min-height: 52px;
+  padding: 14px 22px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  color: var(--gold);
+  background: transparent;
+}
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 32px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.groupName {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+
+.groupCount {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.cards {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  padding: 15px 18px;
+  background: var(--panel);
+  border: 1px solid rgba(201, 169, 110, 0.18);
+  border-left: 2px solid transparent;
+  border-radius: var(--radius);
+}
+
+.card[data-own="true"] {
+  border-color: var(--hairline-strong);
+  border-left-color: var(--gold);
+  background: var(--panel);
+}
+
+.cardFunction {
+  display: block;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.cardTask {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ivory);
+}
+
+.ownTag {
+  margin-left: 10px;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.emptyGroup {
+  font-size: 15px;
+  color: var(--muted);
+  padding: 4px 0 0;
+}

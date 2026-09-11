@@ -1,0 +1,235 @@
+.page {
+  min-height: 100dvh;
+  padding: 28px 20px 80px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.mark {
+  font-size: 15px;
+  letter-spacing: 0.24em;
+}
+
+.title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 1.15;
+  margin: 26px 0 6px;
+}
+
+.lede {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 26px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 0 20px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 20px;
+}
+
+.tool {
+  min-height: 48px;
+  padding: 12px 20px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  color: var(--gold);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tool[data-variant="quiet"] {
+  border-color: var(--hairline);
+  color: var(--muted);
+}
+
+.tool:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-bottom: 22px;
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.statValue {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-family: var(--serif);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+
+.note {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  border-left: 2px solid var(--gold);
+  background: var(--panel-inset);
+  color: var(--ivory);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid rgba(201, 169, 110, 0.18);
+  border-left: 2px solid transparent;
+  border-radius: var(--radius);
+}
+
+.row[data-hidden="true"] {
+  background: var(--panel-inset);
+  border-left-color: var(--muted);
+}
+
+.row[data-hidden="true"] .task,
+.row[data-hidden="true"] .meta {
+  opacity: 0.5;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.metaQuiet {
+  color: var(--muted);
+}
+
+.task {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ivory);
+  overflow-wrap: break-word;
+}
+
+.toggle {
+  min-height: 44px;
+  min-width: 104px;
+  padding: 10px 16px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: transparent;
+}
+
+.toggle[data-hidden="true"] {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.empty {
+  font-size: 16px;
+  color: var(--muted);
+  padding: 24px 0;
+}
+
+/* Gate ------------------------------------------------------------------- */
+
+.gate {
+  max-width: 400px;
+  margin: 16vh auto 0;
+  padding: 0 20px;
+}
+
+.gateTitle {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 32px;
+  margin: 20px 0 8px;
+}
+
+.gateLede {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 22px;
+}
+
+.gateInput {
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  font-size: 17px;
+  background: var(--panel-inset);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--ivory);
+  margin-bottom: 12px;
+}
+
+.gateButton {
+  width: 100%;
+  min-height: 56px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  background: var(--gold);
+  color: var(--midnight);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.gateError {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.6;
+  border-left: 2px solid var(--gold);
+  padding-left: 12px;
+}

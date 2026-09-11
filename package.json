@@ -1,0 +1,27 @@
+{
+  "name": "gsb-alumni-board",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live audience-contribution board for the Steiger Bean GSB Alumni Day session",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "pg": "8.16.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.3",
+    "@types/pg": "8.15.5",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}
