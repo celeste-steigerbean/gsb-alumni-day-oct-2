@@ -149,7 +149,16 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  /* Fade the loop seam rather than cutting a card in half. */
+  /* Fade the loop seam rather than cutting a card in half. The webkit
+     prefix keeps this working on older Safari, which is a real risk on a
+     presentation Mac that has not been updated recently. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 calc(16px * var(--scale)),
+    #000 calc(100% - 26px * var(--scale)),
+    transparent 100%
+  );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
