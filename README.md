@@ -7,11 +7,15 @@ room.
 
 Three screens, one database:
 
-| Screen | Path | Who uses it |
+| Screen | Path | Built for |
 |---|---|---|
-| Submit | `/board` | Attendees, on phones |
-| Board | `/board/live` | The projector, 1920x1080 |
-| Control | `/board/admin` | You, during the session |
+| Submit | `/board` | Phones. One thumb, two taps, no account |
+| Board | `/board/live` | The projector, 1920x1080, read at fifteen feet |
+| Dashboard | `/board/admin` | Your laptop. Every answer, searchable, with moderation |
+
+The submit screen is the only one tuned for a small screen. The dashboard is
+desktop first: it reflows down to phone width without breaking, but it is laid
+out for a laptop.
 
 `/` redirects to `/board`, so the short link on your slide can be the bare
 domain.
@@ -82,9 +86,46 @@ problem, and it is almost always a missing or non-pooled `POSTGRES_URL`.
 
 **Afterwards**
 
-Click **Export CSV** on the admin screen. You get every entry including hidden
+Click **Export CSV** on the dashboard. You get every entry including hidden
 ones, with the raw and display-cased function label, the bucket, the timestamp
 and the anonymous submitter id.
+
+---
+
+## The dashboard
+
+`/board/admin`, behind the single password. It refreshes itself every four
+seconds, so leaving it open on your laptop is enough.
+
+**Four tiles across the top**
+
+On the board, phones (distinct people who submitted), functions (distinct areas
+represented), and hidden.
+
+**Two breakdowns**
+
+*Where the room landed* counts the six task types. *Busiest functions* ranks the
+top eight areas. Both are single-series magnitude bars in one colour with the
+number labelled directly, so there is nothing to decode. When two task types tie
+for the lead, the heading says nothing rather than picking one.
+
+**Filter the answers**
+
+| Control | What it does |
+|---|---|
+| Search | Matches the task text, the function, or the task type |
+| Task type chips | Click to filter to one type, click again to clear. Each chip carries its own count |
+| Hidden shown / Hidden out | Keeps hidden entries in or out of the list |
+
+The count line under the filters says how many answers you are looking at and
+how many exist in total.
+
+**Moderate**
+
+Every row has a **Hide** toggle. Hiding drops the entry off the projected board
+within about half a second, with no reload and without touching the board
+machine. Hidden rows stay in the list, dimmed, with a **Show** button, and they
+stay in the database and in the CSV.
 
 ---
 
@@ -235,3 +276,5 @@ Exercised in a real browser against a real Postgres:
 - The seventh submission from one cookie inside an hour is refused
 - The CSV exports every row, header included, and quotes cells safely
 - Seeding twice does not duplicate the examples
+- Dashboard search, task-type chips and the hidden toggle each narrow the list
+  correctly, and the page has no horizontal overflow down to 430px
