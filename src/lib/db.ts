@@ -15,19 +15,57 @@ declare global {
   var __boardSchemaReady: Promise<void> | undefined;
 }
 
-function connectionString(): string {
-  const url =
-    process.env.POSTGRES_URL ??
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_PRISMA_URL ??
-    process.env.POSTGRES_URL_NON_POOLING;
+/**
+ * Names the hosts actually use, most pooled first. Vercel Postgres, the Neon
+ * marketplace integration and Supabase each pick a different one, and the
+ * integration that writes them can change without warning.
+ */
+const KNOWN_URL_VARS = [
+  "POSTGRES_URL",
+  "DATABASE_URL",
+  "POSTGRES_PRISMA_URL",
+  "NEON_DATABASE_URL",
+  "POSTGRES_URL_NON_POOLING",
+  "DATABASE_URL_UNPOOLED",
+] as const;
 
-  if (!url) {
+function looksLikePostgres(value: string | undefined): value is string {
+  return typeof value === "string" && /^postgres(ql)?:\/\//.test(value.trim());
+}
+
+/** Env var names that could plausibly hold a database URL. Names only. */
+function databaseVarNames(): string[] {
+  return Object.keys(process.env)
+    .filter((name) => /^(POSTGRES|DATABASE|NEON|PG)[A-Z0-9_]*$/.test(name))
+    .sort();
+}
+
+/** Which env vars hold something that parses as a Postgres URL. Names only. */
+export function usableDatabaseVars(): string[] {
+  return databaseVarNames().filter((name) => looksLikePostgres(process.env[name]));
+}
+
+export function resolveDatabaseVar(): string | null {
+  for (const name of KNOWN_URL_VARS) {
+    if (looksLikePostgres(process.env[name])) return name;
+  }
+  // Last resort: any DB-ish variable whose value really is a Postgres URL.
+  // Better to connect than to fail because a host renamed its variable.
+  return usableDatabaseVars()[0] ?? null;
+}
+
+function connectionString(): string {
+  const name = resolveDatabaseVar();
+  if (!name) {
+    const present = databaseVarNames();
     throw new Error(
-      "No database URL. Set POSTGRES_URL (or DATABASE_URL) to a pooled Postgres connection string.",
+      "No database URL. Set POSTGRES_URL (or DATABASE_URL) to a pooled Postgres connection string. " +
+        (present.length
+          ? `Database related variables this deployment can see: ${present.join(", ")}.`
+          : "This deployment can see no database related variables at all, so the store is not connected to it, or the environment variable was not set for the environment this deployment runs in."),
     );
   }
-  return url;
+  return process.env[name] as string;
 }
 
 export function getPool(): Pool {

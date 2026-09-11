@@ -55,12 +55,41 @@ Set both for **Production**, **Preview** and **Development**, then redeploy.
 Open `https://your-domain/api/health`. You want:
 
 ```json
-{ "ok": true, "schema": "ready", "visible": 0, "total": 0 }
+{
+  "ok": true,
+  "schema": "ready",
+  "visible": 0,
+  "total": 0,
+  "environment": {
+    "vercelEnv": "production",
+    "adminPasswordSet": true,
+    "databaseVar": "POSTGRES_URL",
+    "databaseVarsSeen": ["DATABASE_URL", "POSTGRES_URL"]
+  }
+}
 ```
 
 The table, the bucket enum and the indexes are created on the first request, so
-there is no migration step. If this returns `ok: false`, the message names the
-problem, and it is almost always a missing or non-pooled `POSTGRES_URL`.
+there is no migration step.
+
+**If it returns `ok: false`, read the `environment` block.** It reports the
+deployment's own settings, never a secret value.
+
+| What you see | What it means |
+|---|---|
+| `databaseVarsSeen: []` | This deployment cannot see any database variable. The store is not connected to the project, or it is connected to a different environment than the one you are hitting |
+| `vercelEnv: "preview"` when you expected production | You are on a preview URL. Either set the variables for Preview too, or test the production domain |
+| `adminPasswordSet: false` | `ADMIN_PASSWORD` is missing for this environment |
+| `databaseVarsSeen` is populated but `ok` is still false | The URL exists but the connection failed. The `error` line carries the reason, usually a bad host or an unreachable database |
+
+Environment variables only take effect on a **new build**. After changing any of
+them, go to **Deployments**, open the newest one, and use **Redeploy**. Reloading
+the page is not enough.
+
+The app accepts `POSTGRES_URL`, `DATABASE_URL`, `POSTGRES_PRISMA_URL`,
+`NEON_DATABASE_URL`, `POSTGRES_URL_NON_POOLING` or `DATABASE_URL_UNPOOLED`, and
+falls back to any other variable whose value is a real Postgres URL. Hosts rename
+these, and a rename should not take the board down.
 
 ---
 
