@@ -75,12 +75,22 @@ there is no migration step.
 **If it returns `ok: false`, read the `environment` block.** It reports the
 deployment's own settings, never a secret value.
 
+`databaseVars` lists every candidate variable and why it was accepted or
+rejected, by scheme and length. The value itself never leaves the server,
+because it carries the password.
+
 | What you see | What it means |
 |---|---|
-| `databaseVarsSeen: []` | This deployment cannot see any database variable. The store is not connected to the project, or it is connected to a different environment than the one you are hitting |
+| `databaseVars: []` | This deployment cannot see any database variable. The store is not connected to the project, or it is connected to a different environment than the one you are hitting |
+| `POSTGRES_URL -> set but empty` | The variable exists with no value. Usually a variable created by hand and never filled in, which also shadows the one the integration would have supplied |
+| `POSTGRES_URL -> not a postgres url, scheme is "https"` | Something other than a connection string is in there, often a dashboard link |
+| `POSTGRES_URL -> not a url, no scheme found` | Not a connection string at all. Check for a truncated paste |
 | `vercelEnv: "preview"` when you expected production | You are on a preview URL. Either set the variables for Preview too, or test the production domain |
 | `adminPasswordSet: false` | `ADMIN_PASSWORD` is missing for this environment |
-| `databaseVarsSeen` is populated but `ok` is still false | The URL exists but the connection failed. The `error` line carries the reason, usually a bad host or an unreachable database |
+| Everything `usable` but `ok` is still false | The URL is well formed but the connection failed. The `error` line carries the reason |
+
+Wrapping quotes and a leading `psql ` are stripped automatically, so a value
+copied out of a `.env` line or a dashboard's ready-to-run command still works.
 
 Environment variables only take effect on a **new build**. After changing any of
 them, go to **Deployments**, open the newest one, and use **Redeploy**. Reloading

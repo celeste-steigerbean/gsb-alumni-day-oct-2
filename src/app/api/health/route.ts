@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { ensureSchema, query, resolveDatabaseVar, usableDatabaseVars } from "@/lib/db";
+import { describeDatabaseVars, ensureSchema, query, resolveDatabaseVar } from "@/lib/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +21,8 @@ export async function GET() {
     branch: process.env.VERCEL_GIT_COMMIT_REF ?? null,
     adminPasswordSet: Boolean(process.env.ADMIN_PASSWORD),
     databaseVar: resolveDatabaseVar(),
-    databaseVarsSeen: usableDatabaseVars(),
+    // Why each candidate was accepted or rejected. Scheme and length only.
+    databaseVars: describeDatabaseVars(),
   };
 
   try {

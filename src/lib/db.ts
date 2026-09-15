@@ -29,8 +29,26 @@ const KNOWN_URL_VARS = [
   "DATABASE_URL_UNPOOLED",
 ] as const;
 
+/**
+ * Cleans up the ways a good connection string arrives damaged: wrapping
+ * quotes from a copied .env line, a leading "psql " from a dashboard's
+ * ready-to-run command, stray whitespace from a paste.
+ */
+function normalizeUrl(raw: string): string {
+  let value = raw.trim();
+  value = value.replace(/^psql\s+/i, "").trim();
+  if (value.length >= 2) {
+    const first = value[0];
+    const last = value[value.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      value = value.slice(1, -1).trim();
+    }
+  }
+  return value;
+}
+
 function looksLikePostgres(value: string | undefined): value is string {
-  return typeof value === "string" && /^postgres(ql)?:\/\//.test(value.trim());
+  return typeof value === "string" && /^postgres(ql)?:\/\//.test(normalizeUrl(value));
 }
 
 /** Env var names that could plausibly hold a database URL. Names only. */
@@ -45,6 +63,33 @@ export function usableDatabaseVars(): string[] {
   return databaseVarNames().filter((name) => looksLikePostgres(process.env[name]));
 }
 
+/**
+ * Why each database variable was accepted or rejected. Reports the scheme and
+ * the length only. The value itself carries the password and never leaves the
+ * server.
+ */
+export function describeDatabaseVars(): Array<{ name: string; status: string }> {
+  return databaseVarNames().map((name) => {
+    const raw = process.env[name];
+
+    if (raw === undefined) return { name, status: "not set" };
+    if (raw.trim() === "") return { name, status: "set but empty" };
+
+    const value = normalizeUrl(raw);
+    if (/^postgres(ql)?:\/\//.test(value)) {
+      return { name, status: `usable (${value.length} chars)` };
+    }
+
+    const scheme = value.match(/^([A-Za-z0-9+.-]{1,20}):\/\//);
+    return {
+      name,
+      status: scheme
+        ? `not a postgres url, scheme is "${scheme[1]}" (${value.length} chars)`
+        : `not a url, no scheme found (${value.length} chars)`,
+    };
+  });
+}
+
 export function resolveDatabaseVar(): string | null {
   for (const name of KNOWN_URL_VARS) {
     if (looksLikePostgres(process.env[name])) return name;
@@ -57,15 +102,15 @@ export function resolveDatabaseVar(): string | null {
 function connectionString(): string {
   const name = resolveDatabaseVar();
   if (!name) {
-    const present = databaseVarNames();
+    const seen = describeDatabaseVars();
     throw new Error(
-      "No database URL. Set POSTGRES_URL (or DATABASE_URL) to a pooled Postgres connection string. " +
-        (present.length
-          ? `Database related variables this deployment can see: ${present.join(", ")}.`
-          : "This deployment can see no database related variables at all, so the store is not connected to it, or the environment variable was not set for the environment this deployment runs in."),
+      "No usable database URL. " +
+        (seen.length
+          ? `Checked: ${seen.map((v) => `${v.name} is ${v.status}`).join("; ")}.`
+          : "This deployment can see no database related variables at all, so the store is not connected to it, or the variable was not set for the environment this deployment runs in."),
     );
   }
-  return process.env[name] as string;
+  return normalizeUrl(process.env[name] as string);
 }
 
 export function getPool(): Pool {
