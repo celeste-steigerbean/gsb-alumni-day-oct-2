@@ -205,26 +205,35 @@ seconds, so leaving it open on your laptop is enough.
 On the board, phones (distinct people who submitted), functions (distinct areas
 represented), and hidden.
 
-**Two breakdowns**
+**The coverage matrix**
 
-*Where the room landed* counts the six task types. *Busiest functions* ranks the
-top eight areas. Both are single-series magnitude bars in one colour with the
-number labelled directly, so there is nothing to decode. When two task types tie
-for the lead, the heading says nothing rather than picking one.
+The slide, live. Six task types down the side, every function the room has
+actually named across the top, a gold dot where the two meet and a count when a
+cell holds more than one. Row and column totals sit on the edges, so it carries
+the per type and per function distributions without a second chart.
 
-**One table, grouped the way the slide is**
+The filled cells are not the point. A caption under the grid reads "7 of 36
+cells filled. Nobody has looked at the rest," which is the line the exercise
+exists to earn.
 
-Rows sit under the six task types in the order the session teaches them, each
-group headed by the type, its one line explanation and a count. Columns are
-function, the task, the time it arrived, and the hide toggle. Only the table
-scrolls sideways on a narrow screen; the page never does.
+Every cell, row label and column header is a filter. Tapping a cell narrows the
+table underneath to the entries behind that dot, and a chip above the table
+clears it. Empty cells are inert, since there is nothing to show.
+
+**The entries table**
+
+Underneath the matrix, rows sit under the six task types in the order the
+session teaches them, each group headed by the type, its one line explanation
+and a count. Columns are function, the task, the time it arrived, and the hide
+toggle. Only the tables scroll sideways on a narrow screen; the page never
+does.
 
 **Filter the answers**
 
 | Control | What it does |
 |---|---|
 | Search | Matches the task text, the function, or the task type |
-| Task type chips | Click to filter to one type, click again to clear. Each chip carries its own count |
+| The matrix | Tap a cell, a row label or a column header to filter the table. Tap again, or the chip above the table, to clear |
 | Hidden shown / Hidden out | Keeps hidden entries in or out of the list |
 
 The count line under the filters says how many answers you are looking at and

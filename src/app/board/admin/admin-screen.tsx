@@ -16,6 +16,7 @@ import {
   toggleHidden,
   type AdminResult,
 } from "./actions";
+import { CoverageMatrix, type Selection } from "./coverage-matrix";
 import styles from "./admin.module.css";
 
 /** The dashboard refreshes on its own so two devices stay in step. */
@@ -23,33 +24,8 @@ const REFRESH_MS = 4_000;
 const STALE_AFTER_MS = 12_000;
 const TOP_FUNCTIONS = 8;
 
-type BucketFilter = BucketKey | "ALL";
-
 function timeOnly(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
-/**
- * A single-series magnitude bar. One hue carries the magnitude and the value
- * is labelled directly, so there is no legend and no second colour.
- */
-function Bar({ name, value, max }: { name: string; value: number; max: number }) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  return (
-    <div className={styles.bar}>
-      <span className={styles.barName} title={name}>
-        {name}
-      </span>
-      <span className={styles.barValue}>{value}</span>
-      <span className={styles.barTrack}>
-        <span
-          className={styles.barFill}
-          data-empty={value === 0 ? "true" : "false"}
-          style={{ width: `${value === 0 ? 0 : Math.max(pct, 3)}%` }}
-        />
-      </span>
-    </div>
-  );
 }
 
 export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
@@ -61,7 +37,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
   const [pending, startTransition] = useTransition();
 
   const [search, setSearch] = useState("");
-  const [bucketFilter, setBucketFilter] = useState<BucketFilter>("ALL");
+  const [selection, setSelection] = useState<Selection>({ bucket: null, fn: null });
   const [showHidden, setShowHidden] = useState(true);
 
   const [lastSync, setLastSync] = useState(Date.now());
@@ -136,45 +112,18 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
     };
   }, [entries, visible]);
 
-  const bucketCounts = useMemo(() => {
-    const counts = new Map<BucketKey, number>(BUCKETS.map((b) => [b.key, 0]));
-    for (const entry of visible) {
-      counts.set(entry.bucket, (counts.get(entry.bucket) ?? 0) + 1);
-    }
-    return BUCKETS.map((b) => ({ key: b.key, label: b.label, value: counts.get(b.key) ?? 0 }));
-  }, [visible]);
 
-  const bucketMax = Math.max(1, ...bucketCounts.map((b) => b.value));
 
-  const topFunctions = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const entry of visible) {
-      const name = displayFunctionLabel(entry.function_label);
-      counts.set(name, (counts.get(name) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .slice(0, TOP_FUNCTIONS)
-      .map(([name, value]) => ({ name, value }));
-  }, [visible]);
 
-  const functionMax = Math.max(1, ...topFunctions.map((f) => f.value));
 
-  // Only name a leader when one bucket is actually ahead. Calling a three way
-  // tie a leader would be wrong on a screen you read numbers off.
-  const leader = useMemo(() => {
-    const top = Math.max(0, ...bucketCounts.map((b) => b.value));
-    if (top === 0) return null;
-    const atTop = bucketCounts.filter((b) => b.value === top);
-    return atTop.length === 1 ? atTop[0].label : null;
-  }, [bucketCounts]);
 
   // ----------------------------------------------------------------- filter
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return entries.filter((entry) => {
       if (!showHidden && entry.hidden) return false;
-      if (bucketFilter !== "ALL" && entry.bucket !== bucketFilter) return false;
+      if (selection.bucket && entry.bucket !== selection.bucket) return false;
+      if (selection.fn && displayFunctionLabel(entry.function_label) !== selection.fn) return false;
       if (!needle) return true;
       return (
         entry.task.toLowerCase().includes(needle) ||
@@ -182,9 +131,17 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
         bucketLabel(entry.bucket).toLowerCase().includes(needle)
       );
     });
-  }, [entries, search, bucketFilter, showHidden]);
+  }, [entries, search, selection, showHidden]);
 
-  const filtersActive = search.trim() !== "" || bucketFilter !== "ALL" || !showHidden;
+  const filtersActive =
+    search.trim() !== "" || selection.bucket !== null || selection.fn !== null || !showHidden;
+
+  const selectionLabel = [
+    selection.bucket ? bucketLabel(selection.bucket) : null,
+    selection.fn,
+  ]
+    .filter(Boolean)
+    .join(" / ");
 
   return (
     <main className={styles.page}>
@@ -243,33 +200,11 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
         </div>
       </section>
 
-      <section className={styles.panels}>
-        <div className={styles.panel}>
-          <h2 className={styles.panelTitle}>
-            Where the room landed{leader ? `: ${leader} leads` : ""}
-          </h2>
-          <div className={styles.bars}>
-            {bucketCounts.map((bucket) => (
-              <Bar key={bucket.key} name={bucket.label} value={bucket.value} max={bucketMax} />
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.panel}>
-          <h2 className={styles.panelTitle}>
-            Busiest functions{topFunctions.length > TOP_FUNCTIONS ? ` (top ${TOP_FUNCTIONS})` : ""}
-          </h2>
-          {topFunctions.length === 0 ? (
-            <p className={styles.panelEmpty}>Nothing submitted yet.</p>
-          ) : (
-            <div className={styles.bars}>
-              {topFunctions.map((fn) => (
-                <Bar key={fn.name} name={fn.name} value={fn.value} max={functionMax} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <CoverageMatrix
+        entries={visible}
+        selection={selection}
+        onSelect={setSelection}
+      />
 
       <div className={styles.toolbar}>
         <button
@@ -312,29 +247,16 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <button
-          type="button"
-          className={styles.chip}
-          data-on={bucketFilter === "ALL" ? "true" : "false"}
-          onClick={() => setBucketFilter("ALL")}
-        >
-          All
-          <span className={styles.chipCount}>{visible.length}</span>
-        </button>
-        {bucketCounts.map((bucket) => (
+        {selectionLabel ? (
           <button
-            key={bucket.key}
             type="button"
             className={styles.chip}
-            data-on={bucketFilter === bucket.key ? "true" : "false"}
-            onClick={() =>
-              setBucketFilter((current) => (current === bucket.key ? "ALL" : bucket.key))
-            }
+            data-on="true"
+            onClick={() => setSelection({ bucket: null, fn: null })}
           >
-            {bucket.label}
-            <span className={styles.chipCount}>{bucket.value}</span>
+            {selectionLabel} &times;
           </button>
-        ))}
+        ) : null}
         <button
           type="button"
           className={styles.chip}
