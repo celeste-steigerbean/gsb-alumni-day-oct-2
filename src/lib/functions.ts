@@ -3,40 +3,32 @@
  * nudge a custom value toward an existing option without ever overriding it.
  */
 
+/**
+ * Deliberately short. A long alphabetical list is a scrolling chore on a phone
+ * and most of it never gets picked, so this keeps the broad areas a senior
+ * audience actually sits in and sends everything else through "Add your own".
+ * Anything removed still resolves: typing "regulatory affairs" fuzzy matches
+ * to Compliance, and the original text is what gets stored either way.
+ */
 export const FUNCTION_OPTIONS: string[] = [
   "Board and governance",
   "Business development",
-  "Clinical operations",
   "Communications",
   "Compliance",
-  "Corporate development",
   "Customer success",
   "Engineering",
-  "Facilities",
   "Finance",
-  "Fundraising and development",
-  "Grant writing",
+  "Fundraising",
   "HR and people",
-  "Investor relations",
   "IT",
   "Legal",
-  "Manufacturing",
   "Marketing",
   "Operations",
-  "Procurement",
   "Product",
-  "Program management",
-  "Quality",
-  "Recruiting",
-  "Regulatory affairs",
   "Research",
-  "Revenue operations",
-  "Risk",
   "Sales",
   "Strategy",
   "Supply chain",
-  "Tax",
-  "Treasury",
 ];
 
 export const MAX_FUNCTION_LENGTH = 60;

@@ -20,6 +20,8 @@ export type BoardSnapshot = {
   /** Changes whenever the visible set of entries changes. */
   version: string;
   total: number;
+  /** Distinct people behind the visible entries, examples excluded. */
+  people: number;
   entries: Entry[];
 };
 
@@ -72,17 +74,24 @@ export async function getBoardSnapshot(options?: { fresh?: boolean }): Promise<B
     return cached.value;
   }
 
-  const rows = await query<Row>(
-    `SELECT id, created_at, bucket, function_label, task, hidden
+  const rows = await query<Row & { submitter_cookie_id: string }>(
+    `SELECT id, created_at, bucket, function_label, task, hidden, submitter_cookie_id
        FROM entries
       WHERE hidden = FALSE
       ORDER BY id DESC`,
   );
 
   const entries = rows.map(toEntry);
+  const people = new Set(
+    rows
+      .filter((row) => row.submitter_cookie_id !== SEED_COOKIE_ID)
+      .map((row) => row.submitter_cookie_id),
+  ).size;
+
   const value: BoardSnapshot = {
     version: versionOf(entries),
     total: entries.length,
+    people,
     entries,
   };
   cached = { at: now, value };

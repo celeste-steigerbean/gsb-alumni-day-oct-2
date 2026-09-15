@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
+import { BucketSelect } from "@/components/bucket-select";
 import { FunctionCombobox } from "@/components/function-combobox";
 import { Wordmark } from "@/components/wordmark";
 import type { BoardPayload } from "@/lib/board-payload";
@@ -24,6 +25,9 @@ function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+/** How long a newly arrived card keeps its entrance animation. */
+const ARRIVAL_MS = 1_400;
+
 export function SubmitScreen({ initial }: Props) {
   const { payload, status, error: liveError, adopt } = useLiveBoard({ mode: "submit", initial });
 
@@ -34,6 +38,7 @@ export function SubmitScreen({ initial }: Props) {
   const [ownIds, setOwnIds] = useState<string[]>(initial.ownIds);
   const [justAdded, setJustAdded] = useState(false);
   const [composing, setComposing] = useState(true);
+  const [showBoard, setShowBoard] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const formTopRef = useRef<HTMLDivElement>(null);
@@ -55,6 +60,26 @@ export function SubmitScreen({ initial }: Props) {
     if (unlocked && justAdded) setComposing(false);
   }, [unlocked, justAdded]);
 
+  // Mark cards that were not on the board a moment ago, so the reveal is
+  // visibly live rather than a static list that happens to refresh.
+  const [arriving, setArriving] = useState<Set<string>>(new Set());
+  const seenRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!showBoard) return;
+    const current = new Set((view.entries ?? []).map((entry) => entry.id));
+    if (seenRef.current === null) {
+      seenRef.current = current;
+      return;
+    }
+    const fresh = new Set<string>();
+    for (const id of current) if (!seenRef.current.has(id)) fresh.add(id);
+    seenRef.current = current;
+    if (fresh.size === 0) return;
+    setArriving(fresh);
+    const timer = window.setTimeout(() => setArriving(new Set()), ARRIVAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [view.entries, showBoard]);
+
   const taskLength = task.trim().length;
   const canSubmit =
     Boolean(bucket) &&
@@ -63,24 +88,18 @@ export function SubmitScreen({ initial }: Props) {
     taskLength <= TASK_MAX_LENGTH &&
     !pending;
 
-  /** For anyone staring at six choices with nothing coming. */
+  /** For anyone staring at the choices with nothing coming. */
   const shuffle = useCallback(() => {
-    const nextBucket = BUCKETS[Math.floor(Math.random() * BUCKETS.length)].key;
-    const nextFunction = FUNCTION_OPTIONS[Math.floor(Math.random() * FUNCTION_OPTIONS.length)];
-    setBucket(nextBucket === bucket && BUCKETS.length > 1 ? pickOther(bucket) : nextBucket);
-    setFunctionLabel(nextFunction);
+    const others = bucket ? BUCKETS.filter((b) => b.key !== bucket) : BUCKETS;
+    setBucket(others[Math.floor(Math.random() * others.length)].key);
+    setFunctionLabel(FUNCTION_OPTIONS[Math.floor(Math.random() * FUNCTION_OPTIONS.length)]);
     setError(null);
   }, [bucket]);
-
-  function pickOther(current: BucketKey): BucketKey {
-    const others = BUCKETS.filter((b) => b.key !== current);
-    return others[Math.floor(Math.random() * others.length)].key;
-  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!bucket) {
-      setError({ ok: false, field: "bucket", message: "Pick one of the six task types." });
+      setError({ ok: false, field: "bucket", message: "Pick a kind of task." });
       return;
     }
     setError(null);
@@ -91,8 +110,6 @@ export function SubmitScreen({ initial }: Props) {
         setError(result);
         return;
       }
-      // The action already carries the current board. Show it now rather than
-      // leaving a gap until the next frame arrives.
       adopt(result.payload);
       setOwnIds(result.payload.ownIds);
       setJustAdded(true);
@@ -108,16 +125,8 @@ export function SubmitScreen({ initial }: Props) {
     });
   }
 
-  const grouped = useMemo(() => {
-    const entries = view.entries ?? [];
-    return BUCKETS.map((definition) => ({
-      key: definition.key,
-      label: definition.label,
-      items: entries.filter((entry) => entry.bucket === definition.key),
-    }));
-  }, [view.entries]);
-
   const ownSet = useMemo(() => new Set(ownIds), [ownIds]);
+  const stream = view.entries ?? [];
 
   return (
     <main className={styles.page}>
@@ -132,14 +141,30 @@ export function SubmitScreen({ initial }: Props) {
       <h1 className={styles.title}>Six things this technology is good at</h1>
       <p className={styles.lede}>
         {unlocked
-          ? "You are in. Here is everything the room has put up, updating as it arrives."
+          ? "You are in. Open the board whenever you like, it keeps filling as the room adds more."
           : `Add ${numberWord(required)} tasks from your own company. A few words each is plenty. The whole board opens on the last one.`}
       </p>
 
-      {/* Progress ------------------------------------------------------- */}
+      {/* Teaser. A count only: nobody sees anyone else's words until they
+          have added their own three. */}
+      <section className={styles.proof} aria-label="The room so far">
+        <div className={styles.proofHead}>
+          <span className={styles.proofCount}>{view.total}</span>
+          <span className={styles.proofLabel}>
+            {view.total === 1 ? "Task in" : "Tasks in"}
+          </span>
+        </div>
+        <p className={styles.proofNote}>
+          {view.people === 0
+            ? "Nobody has gone yet. Yours can be first."
+            : `From ${view.people} ${view.people === 1 ? "person" : "people"} in this room.`}
+        </p>
+      </section>
+
+      {/* The three slots ------------------------------------------------- */}
       <section className={styles.slots} aria-label="Your three tasks">
         <h2 className={styles.slotsTitle}>
-          {unlocked ? `Your ${numberWord(submitted)} tasks` : `Your three tasks`}
+          {unlocked ? `Your ${numberWord(submitted)} tasks` : "Your three tasks"}
         </h2>
         <ol className={styles.slotList}>
           {Array.from({ length: Math.max(required, submitted) }, (_, index) => {
@@ -152,7 +177,7 @@ export function SubmitScreen({ initial }: Props) {
                 data-next={!entry && index === submitted ? "true" : "false"}
               >
                 <span className={styles.slotMark} aria-hidden="true">
-                  {entry ? "\u2713" : index + 1}
+                  {entry ? "✓" : index + 1}
                 </span>
                 {entry ? (
                   <span className={styles.slotBody}>
@@ -172,37 +197,6 @@ export function SubmitScreen({ initial }: Props) {
             );
           })}
         </ol>
-      </section>
-
-      {/* Proof ---------------------------------------------------------- */}
-      <section className={styles.proof} aria-label="Board so far">
-        <div className={styles.proofHead}>
-          <span className={styles.proofCount}>{view.total}</span>
-          <span className={styles.proofLabel}>
-            {view.total === 1 ? "Task on the board" : "Tasks on the board"}
-          </span>
-        </div>
-
-        {/* Samples exist to prove the board is real. Once someone has added
-            their own, that job is done and repeating them is just noise. */}
-        {!unlocked && submitted === 0 ? (
-          view.samples.length > 0 ? (
-            <ul className={styles.proofList}>
-              {view.samples.map((sample) => (
-                <li key={sample.id} className={styles.proofItem}>
-                  <span className={styles.proofFunction}>
-                    {displayFunctionLabel(sample.function_label)}
-                    {" / "}
-                    {bucketLabel(sample.bucket)}
-                  </span>
-                  {sample.task}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.proofEmpty}>Nothing yet. Yours can be first.</p>
-          )
-        ) : null}
       </section>
 
       {liveError && status === "stalled" ? (
@@ -232,25 +226,14 @@ export function SubmitScreen({ initial }: Props) {
               <span className={styles.stepNumber}>1</span>
               <h2 className={styles.stepLabel}>Which kind of task</h2>
             </div>
-            <div className={styles.buckets} role="radiogroup" aria-label="Task type">
-              {BUCKETS.map((definition) => (
-                <button
-                  key={definition.key}
-                  type="button"
-                  role="radio"
-                  aria-checked={bucket === definition.key}
-                  data-selected={bucket === definition.key ? "true" : "false"}
-                  className={styles.bucket}
-                  onClick={() => {
-                    setBucket(definition.key);
-                    if (error?.field === "bucket") setError(null);
-                  }}
-                >
-                  <span className={styles.bucketName}>{definition.label}</span>
-                  <span className={styles.bucketHelper}>{definition.helper}</span>
-                </button>
-              ))}
-            </div>
+            <BucketSelect
+              value={bucket}
+              onChange={(next) => {
+                setBucket(next);
+                if (error?.field === "bucket") setError(null);
+              }}
+              invalid={error?.field === "bucket"}
+            />
             {error?.field === "bucket" ? <p className={styles.error}>{error.message}</p> : null}
           </section>
 
@@ -283,7 +266,7 @@ export function SubmitScreen({ initial }: Props) {
               className={styles.textarea}
               value={task}
               maxLength={TASK_MAX_LENGTH}
-              placeholder="One sentence, and who does it by hand today"
+              placeholder="A few words, and who does it by hand today"
               onChange={(event) => {
                 setTask(event.target.value);
                 if (error?.field === "task") setError(null);
@@ -321,56 +304,64 @@ export function SubmitScreen({ initial }: Props) {
       <div ref={boardTopRef} />
 
       {unlocked ? (
-        <>
-          {!composing ? (
-            <div className={styles.actions}>
-              <button
-                type="button"
-                className={styles.actionButton}
-                onClick={() => {
-                  setComposing(true);
-                  setJustAdded(false);
-                  requestAnimationFrame(() =>
-                    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-                  );
-                }}
-              >
-                Add another task
-              </button>
-            </div>
-          ) : null}
+        <section className={styles.reveal}>
+          <button
+            type="button"
+            className={styles.revealButton}
+            aria-expanded={showBoard}
+            onClick={() => setShowBoard((current) => !current)}
+          >
+            {showBoard ? "Hide the board" : `Show the whole board (${view.total})`}
+          </button>
 
-          {view.entries && view.entries.length > 0 ? (
-            grouped.map((group) => (
-              <section key={group.key}>
-                <div className={styles.groupHead}>
-                  <h2 className={styles.groupName}>{group.label}</h2>
-                  <span className={styles.groupCount}>{group.items.length}</span>
-                </div>
-                {group.items.length === 0 ? (
-                  <p className={styles.emptyGroup}>Nothing here yet</p>
-                ) : (
-                  <ul className={styles.cards}>
-                    {group.items.map((entry) => {
-                      const own = ownSet.has(entry.id);
-                      return (
-                        <li key={entry.id} className={styles.card} data-own={own ? "true" : "false"}>
-                          <span className={styles.cardFunction}>
-                            {displayFunctionLabel(entry.function_label)}
-                            {own ? <span className={styles.ownTag}>Yours</span> : null}
-                          </span>
-                          <span className={styles.cardTask}>{entry.task}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-            ))
-          ) : (
+          {!composing ? (
+            <button
+              type="button"
+              className={styles.revealQuiet}
+              onClick={() => {
+                setComposing(true);
+                setJustAdded(false);
+                requestAnimationFrame(() =>
+                  formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                );
+              }}
+            >
+              Add another task
+            </button>
+          ) : null}
+        </section>
+      ) : null}
+
+      {unlocked && showBoard ? (
+        <section aria-label="The whole board">
+          <p className={styles.streamNote}>
+            Newest first, updating as the room adds more.
+          </p>
+          {stream.length === 0 ? (
             <p className={styles.footnote}>The board is empty. Yours will be the first card.</p>
+          ) : (
+            <ul className={styles.cards}>
+              {stream.map((entry) => {
+                const own = ownSet.has(entry.id);
+                return (
+                  <li
+                    key={entry.id}
+                    className={`${styles.card} ${arriving.has(entry.id) ? styles.cardEnter : ""}`}
+                    data-own={own ? "true" : "false"}
+                  >
+                    <span className={styles.cardFunction}>
+                      {bucketLabel(entry.bucket)}
+                      {" / "}
+                      {displayFunctionLabel(entry.function_label)}
+                      {own ? <span className={styles.ownTag}>Yours</span> : null}
+                    </span>
+                    <span className={styles.cardTask}>{entry.task}</span>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </>
+        </section>
       ) : null}
     </main>
   );

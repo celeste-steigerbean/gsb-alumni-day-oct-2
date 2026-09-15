@@ -159,14 +159,26 @@ The code is `GSB26` out of the box. Set `ROOM_PASSCODE` to change it, or to
 One page, phone first, nothing to install.
 
 1. Scan the QR. No typing, no account, no email
-2. Pick one of six task types, pick a function, write one sentence
-3. Repeat until three are in. **The full board opens on the third**
-4. After that, the whole room's board, with their own three marked
+2. Pick a task type from a dropdown, pick a function from a dropdown, write a few words
+3. Repeat until three are in
+4. Then a **Show the whole board** button appears. It opens the full board and
+   keeps filling as other people submit, with each new card animating in
 
 A panel at the top shows the three slots from the first screen: filled ones
 carry a tick and the words they wrote, the next one is outlined and says "Add
 this one next". Nobody has to guess how many are left or whether the last one
 landed.
+
+**Nobody sees anyone else's words before their own three are in.** The teaser is
+a count and nothing more: how many tasks are in, and how many people put them
+there. No sample entries, no previews. This keeps the reveal worth waiting for
+and stops the first few submissions anchoring everyone who follows.
+
+**Both pickers are dropdowns.** Six stacked cards for the task type pushed the
+rest of the form off a phone screen, so the task type now uses the same control
+as the function, with the one line explanation shown inside each option and
+again once a choice is made. The function list is deliberately short at
+eighteen broad areas, with "Add your own" for everything else.
 
 **Each task is short.** Ten characters is the floor, so "board pack prep" is a
 valid entry. The copy says "a few words each is plenty" for a reason: three
@@ -199,6 +211,13 @@ represented), and hidden.
 top eight areas. Both are single-series magnitude bars in one colour with the
 number labelled directly, so there is nothing to decode. When two task types tie
 for the lead, the heading says nothing rather than picking one.
+
+**One table, grouped the way the slide is**
+
+Rows sit under the six task types in the order the session teaches them, each
+group headed by the type, its one line explanation and a count. Columns are
+function, the task, the time it arrived, and the hide toggle. Only the table
+scrolls sideways on a narrow screen; the page never does.
 
 **Filter the answers**
 

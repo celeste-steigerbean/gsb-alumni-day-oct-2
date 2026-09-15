@@ -84,6 +84,15 @@
   line-height: 1.4;
 }
 
+.proofNote {
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--hairline);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
 .proofList {
   list-style: none;
   margin: 18px 0 0;
@@ -524,4 +533,62 @@
   font-size: 15px;
   color: var(--muted);
   padding: 4px 0 0;
+}
+
+/* Reveal and live stream -------------------------------------------------- */
+
+.reveal {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 26px;
+}
+
+.revealButton {
+  width: 100%;
+  min-height: 60px;
+  padding: 18px 22px;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  background: var(--gold);
+  color: var(--midnight);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.revealQuiet {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 22px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+}
+
+.streamNote {
+  margin: 0 0 14px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  line-height: 1.5;
+}
+
+.cardEnter {
+  animation: cardArrive 800ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+
+@keyframes cardArrive {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }

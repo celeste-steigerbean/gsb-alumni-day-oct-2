@@ -7,13 +7,13 @@ export const dynamic = "force-dynamic";
 const EMPTY: BoardPayload = {
   version: "boot",
   total: 0,
+  people: 0,
   unlocked: true,
   remaining: 0,
   required: REQUIRED_SUBMISSIONS,
   ownIds: [],
   ownEntries: [],
   entries: [],
-  samples: [],
 };
 
 function clamp(value: number, min: number, max: number, fallback: number): number {

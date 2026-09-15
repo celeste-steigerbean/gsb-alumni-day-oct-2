@@ -308,91 +308,114 @@ a.tool[data-variant="quiet"] {
   color: var(--ivory);
 }
 
-/* Entry list ------------------------------------------------------------- */
+/* Entry table ------------------------------------------------------------ */
 
-.list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 190px 1fr auto;
-  gap: 18px;
-  align-items: start;
-  padding: 14px 16px;
-  background: var(--panel);
+.tableWrap {
+  /* Only the table scrolls sideways if the room is narrow. The page never
+     does. */
+  overflow-x: auto;
   border: 1px solid rgba(201, 169, 110, 0.18);
-  border-left: 2px solid transparent;
   border-radius: var(--radius);
 }
 
-@media (max-width: 760px) {
-  .row {
-    grid-template-columns: 1fr auto;
-  }
-  .rowMeta {
-    grid-column: 1 / -1;
-  }
+.table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 15px;
 }
 
-.row[data-hidden="true"] {
-  background: var(--panel-inset);
-  border-left-color: var(--muted);
-}
-
-.row[data-hidden="true"] .task,
-.row[data-hidden="true"] .rowMeta {
-  opacity: 0.45;
-}
-
-.rowMeta {
-  display: grid;
-  gap: 3px;
-}
-
-.rowBucket {
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 12px 16px;
+  text-align: left;
   font-size: 14px;
+  font-weight: 300;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   color: var(--gold);
-  line-height: 1.3;
+  background: var(--panel-inset);
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
 }
 
-.rowFunction {
-  font-size: 14px;
-  color: var(--ivory);
-  line-height: 1.4;
+.groupRow th {
+  padding: 16px 16px 12px;
+  text-align: left;
+  font-weight: 300;
+  background: var(--panel-inset);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid rgba(201, 169, 110, 0.18);
 }
 
-.rowTime {
+.groupName {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-right: 12px;
+}
+
+.groupHelper {
   font-size: 14px;
   color: var(--muted);
-  letter-spacing: 0.08em;
+  margin-right: 12px;
+}
+
+.groupCount {
+  font-family: var(--serif);
+  font-size: 18px;
+  color: var(--muted);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.table tbody td {
+  padding: 13px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(250, 248, 245, 0.06);
+  line-height: 1.55;
+  color: var(--ivory);
+}
+
+.table tbody tr[data-hidden="true"] td {
+  opacity: 0.4;
+}
+
+.colFunction {
+  width: 200px;
+  color: var(--ivory);
+}
+
+.colTask {
+  min-width: 300px;
+  overflow-wrap: break-word;
+}
+
+.colTime {
+  width: 92px;
+  white-space: nowrap;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.colAction {
+  width: 110px;
 }
 
 .rowTag {
   font-size: 14px;
-  color: var(--muted);
-  letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.task {
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ivory);
-  overflow-wrap: break-word;
-  padding-top: 1px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
 }
 
 .toggle {
-  min-height: 42px;
-  min-width: 96px;
-  padding: 10px 16px;
+  min-height: 40px;
+  min-width: 88px;
+  padding: 9px 14px;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.16em;

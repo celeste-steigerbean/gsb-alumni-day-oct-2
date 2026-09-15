@@ -355,48 +355,74 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           {entries.length === 0 ? "Nothing submitted yet." : "Nothing matches those filters."}
         </p>
       ) : (
-        <ul className={styles.list}>
-          {filtered.map((entry) => (
-            <li key={entry.id} className={styles.row} data-hidden={entry.hidden ? "true" : "false"}>
-              <div className={styles.rowMeta}>
-                <span className={styles.rowBucket}>{bucketLabel(entry.bucket)}</span>
-                <span className={styles.rowFunction}>
-                  {displayFunctionLabel(entry.function_label)}
-                </span>
-                <span className={styles.rowTime}>
-                  {timeOnly(entry.created_at)}
-                  {entry.submitter_cookie_id === SEED_COOKIE_ID ? (
-                    <span className={styles.rowTag}> &middot; Example</span>
-                  ) : null}
-                </span>
-              </div>
+        /* Grouped by the six task types, in the order the session teaches
+           them, so the table reads the same way the slide does. */
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th scope="col" className={styles.colFunction}>Function</th>
+                <th scope="col" className={styles.colTask}>The task</th>
+                <th scope="col" className={styles.colTime}>Time</th>
+                <th scope="col" className={styles.colAction}>
+                  <span className="visually-hidden">Show or hide</span>
+                </th>
+              </tr>
+            </thead>
 
-              <div className={styles.task}>{entry.task}</div>
+            {BUCKETS.map((definition) => {
+              const rows = filtered.filter((entry) => entry.bucket === definition.key);
+              if (rows.length === 0) return null;
+              return (
+                <tbody key={definition.key}>
+                  <tr className={styles.groupRow}>
+                    <th scope="colgroup" colSpan={4}>
+                      <span className={styles.groupName}>{definition.label}</span>
+                      <span className={styles.groupHelper}>{definition.helper}</span>
+                      <span className={styles.groupCount}>{rows.length}</span>
+                    </th>
+                  </tr>
 
-              <button
-                type="button"
-                className={styles.toggle}
-                data-hidden={entry.hidden ? "true" : "false"}
-                disabled={busyId === entry.id}
-                onClick={() => {
-                  setBusyId(entry.id);
-                  // Optimistic, so the click feels instant on stage.
-                  setEntries((current) =>
-                    current.map((row) =>
-                      row.id === entry.id ? { ...row, hidden: !row.hidden } : row,
-                    ),
-                  );
-                  startTransition(async () => {
-                    absorb(await toggleHidden(entry.id, !entry.hidden));
-                    setBusyId(null);
-                  });
-                }}
-              >
-                {entry.hidden ? "Show" : "Hide"}
-              </button>
-            </li>
-          ))}
-        </ul>
+                  {rows.map((entry) => (
+                    <tr key={entry.id} data-hidden={entry.hidden ? "true" : "false"}>
+                      <td className={styles.colFunction}>
+                        {displayFunctionLabel(entry.function_label)}
+                        {entry.submitter_cookie_id === SEED_COOKIE_ID ? (
+                          <span className={styles.rowTag}> Example</span>
+                        ) : null}
+                      </td>
+                      <td className={styles.colTask}>{entry.task}</td>
+                      <td className={styles.colTime}>{timeOnly(entry.created_at)}</td>
+                      <td className={styles.colAction}>
+                        <button
+                          type="button"
+                          className={styles.toggle}
+                          data-hidden={entry.hidden ? "true" : "false"}
+                          disabled={busyId === entry.id}
+                          onClick={() => {
+                            setBusyId(entry.id);
+                            // Optimistic, so the click feels instant on stage.
+                            setEntries((current) =>
+                              current.map((row) =>
+                                row.id === entry.id ? { ...row, hidden: !row.hidden } : row,
+                              ),
+                            );
+                            startTransition(async () => {
+                              absorb(await toggleHidden(entry.id, !entry.hidden));
+                              setBusyId(null);
+                            });
+                          }}
+                        >
+                          {entry.hidden ? "Show" : "Hide"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              );
+            })}
+          </table>
+        </div>
       )}
     </main>
   );

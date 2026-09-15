@@ -18,13 +18,13 @@ export default async function BoardPage() {
     initial = {
       version: "boot",
       total: 0,
+      people: 0,
       unlocked: false,
       remaining: REQUIRED_SUBMISSIONS,
       required: REQUIRED_SUBMISSIONS,
       ownIds: [],
       ownEntries: [],
       entries: null,
-      samples: [],
     };
   }
 

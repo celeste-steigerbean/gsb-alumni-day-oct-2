@@ -10,6 +10,8 @@ import { REQUIRED_SUBMISSIONS } from "./entries-constants";
 export type BoardPayload = {
   version: string;
   total: number;
+  /** Distinct people who have submitted. The whole teaser before unlocking. */
+  people: number;
   /** True once this visitor has met the submission quota, or on the live board. */
   unlocked: boolean;
   /** How many this visitor still owes before the board opens. */
@@ -22,11 +24,7 @@ export type BoardPayload = {
   ownEntries: Entry[];
   /** Every visible entry, newest first. Null while the board is still locked. */
   entries: Entry[] | null;
-  /** The three newest entries, shown before a visitor has submitted. */
-  samples: Entry[];
 };
-
-export const SAMPLE_COUNT = 3;
 
 /**
  * Builds the payload both the poll endpoint and the SSE stream send.
@@ -59,12 +57,12 @@ export async function buildBoardPayload(options: {
   return {
     version: `${snapshot.version}:${unlocked ? "open" : `locked-${ownIds.length}`}`,
     total: snapshot.total,
+    people: snapshot.people,
     unlocked,
     remaining,
     required: REQUIRED_SUBMISSIONS,
     ownIds,
     ownEntries,
     entries: unlocked ? snapshot.entries : null,
-    samples: snapshot.entries.slice(0, SAMPLE_COUNT),
   };
 }
