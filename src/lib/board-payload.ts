@@ -5,12 +5,17 @@ import {
   getEntryIdsForCookie,
   type Entry,
 } from "./entries";
+import { REQUIRED_SUBMISSIONS } from "./entries-constants";
 
 export type BoardPayload = {
   version: string;
   total: number;
-  /** True once this visitor has submitted at least once, or on the live board. */
+  /** True once this visitor has met the submission quota, or on the live board. */
   unlocked: boolean;
+  /** How many this visitor still owes before the board opens. */
+  remaining: number;
+  /** How many are required in total, so the UI never hardcodes it. */
+  required: number;
   /** Ids belonging to this visitor, so their own cards can be marked. */
   ownIds: string[];
   /** Every visible entry, newest first. Null while the board is still locked. */
@@ -24,9 +29,9 @@ export const SAMPLE_COUNT = 3;
 /**
  * Builds the payload both the poll endpoint and the SSE stream send.
  *
- * The full list is withheld until a visitor submits. That gate is a
- * conversation device, not a security boundary: the same data is on the
- * projected screen, and mode "live" returns it outright.
+ * The full list is withheld until a visitor has added the required number of
+ * tasks. That gate is a teaching device, not a security boundary: the same
+ * data is on the projected screen, and mode "live" returns it outright.
  */
 export async function buildBoardPayload(options: {
   visitorId: string;
@@ -40,12 +45,15 @@ export async function buildBoardPayload(options: {
       ? []
       : await getEntryIdsForCookie(options.visitorId);
 
-  const unlocked = options.mode === "live" || ownIds.length > 0;
+  const unlocked = options.mode === "live" || ownIds.length >= REQUIRED_SUBMISSIONS;
+  const remaining = Math.max(0, REQUIRED_SUBMISSIONS - ownIds.length);
 
   return {
-    version: `${snapshot.version}:${unlocked ? ownIds.length : "locked"}`,
+    version: `${snapshot.version}:${unlocked ? "open" : `locked-${ownIds.length}`}`,
     total: snapshot.total,
     unlocked,
+    remaining,
+    required: REQUIRED_SUBMISSIONS,
     ownIds,
     entries: unlocked ? snapshot.entries : null,
     samples: snapshot.entries.slice(0, SAMPLE_COUNT),

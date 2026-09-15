@@ -114,6 +114,76 @@
   color: var(--muted);
 }
 
+/* Progress --------------------------------------------------------------- */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.pips {
+  display: inline-flex;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.pip {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-strong);
+  background: transparent;
+  transition: background 220ms linear;
+}
+
+.pip[data-on="true"] {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.progressText {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.added {
+  margin: 0 0 18px;
+  padding: 13px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ivory);
+  background: var(--panel);
+  border: 1px solid rgba(201, 169, 110, 0.2);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.shuffle {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 30px;
+  padding: 14px 18px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--radius);
+}
+
+.shuffle:hover,
+.shuffle:focus-visible {
+  color: var(--gold);
+  border-style: solid;
+}
+
 /* Form ------------------------------------------------------------------- */
 
 .step {

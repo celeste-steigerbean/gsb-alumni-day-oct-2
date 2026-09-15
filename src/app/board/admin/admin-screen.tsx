@@ -7,6 +7,7 @@ import { BUCKETS, bucketLabel, type BucketKey } from "@/lib/buckets";
 import type { AdminEntry } from "@/lib/entries";
 import { SEED_COOKIE_ID } from "@/lib/entries-constants";
 import { displayFunctionLabel } from "@/lib/functions";
+import { Wordmark } from "@/components/wordmark";
 import {
   clearSeeds,
   refreshEntries,
@@ -188,9 +189,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
   return (
     <main className={styles.page}>
       <header className={styles.head}>
-        <span className={`wordmark ${styles.mark}`}>
-          Steiger Bean <span className="dot">&bull;</span>
-        </span>
+        <Wordmark className={styles.mark} />
         <span className={styles.headRight}>
           <span className={styles.liveDot} data-stale={stale ? "true" : "false"} aria-hidden="true" />
           <button

@@ -27,6 +27,7 @@ export {
   TASK_MIN_LENGTH,
   TASK_MAX_LENGTH,
   RATE_LIMIT_PER_HOUR,
+  REQUIRED_SUBMISSIONS,
   SEED_COOKIE_ID,
 } from "./entries-constants";
 

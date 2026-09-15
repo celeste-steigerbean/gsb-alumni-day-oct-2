@@ -1,4 +1,5 @@
-import { buildBoardPayload } from "@/lib/board-payload";
+import { buildBoardPayload, type BoardPayload } from "@/lib/board-payload";
+import { REQUIRED_SUBMISSIONS } from "@/lib/entries-constants";
 import { readVisitorId } from "@/lib/session";
 import { SubmitScreen } from "./submit-screen";
 
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function BoardPage() {
   const visitorId = await readVisitorId();
 
-  let initial;
+  let initial: BoardPayload;
   try {
     initial = await buildBoardPayload({ visitorId, mode: "submit", fresh: true });
   } catch (error) {
@@ -18,6 +19,8 @@ export default async function BoardPage() {
       version: "boot",
       total: 0,
       unlocked: false,
+      remaining: REQUIRED_SUBMISSIONS,
+      required: REQUIRED_SUBMISSIONS,
       ownIds: [],
       entries: null,
       samples: [],

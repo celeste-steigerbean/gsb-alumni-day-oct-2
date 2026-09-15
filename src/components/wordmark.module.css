@@ -1,0 +1,15 @@
+.link {
+  /* The global anchor rule paints links gold with a rule under them. The
+     wordmark is a mark, not a link in running text, so it keeps its own
+     colour and shows intent on interaction instead. */
+  color: var(--ivory);
+  border-bottom: 0;
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity 160ms linear;
+}
+
+.link:hover,
+.link:focus-visible {
+  opacity: 0.72;
+}

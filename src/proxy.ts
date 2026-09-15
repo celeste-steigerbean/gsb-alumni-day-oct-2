@@ -1,21 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  CODE_PARAM,
+  ROOM_COOKIE,
+  ROOM_COOKIE_MAX_AGE,
+  codeMatches,
+  roomGateEnabled,
+  roomToken,
+  tokenIsValid,
+} from "@/lib/room-access";
+
 const VISITOR_COOKIE = "sb_board_id";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 /**
- * Mints the anonymous visitor id on first contact. Writing it onto the request
- * as well as the response means the page rendering this same request already
- * sees the id, so nothing has to wait for a second round trip.
+ * Runs before every board request. Two jobs:
  *
- * This is the Next 16 "proxy" convention, formerly called middleware.
+ *  1. Mint the anonymous visitor id on first contact. Writing it onto the
+ *     request as well as the response means the page rendering this same
+ *     request already sees the id, so nothing waits for a second round trip.
+ *  2. Hold the room gate. A QR code carrying ?code= is exchanged for a cookie
+ *     and the code is stripped from the URL, so attendees never type anything
+ *     and the code does not sit in the address bar to be screenshotted.
+ *
+ * This is the Next 16 "proxy" convention, formerly called middleware. It
+ * always runs on the Node runtime.
  */
-export function proxy(request: NextRequest) {
-  const existing = request.cookies.get(VISITOR_COOKIE)?.value;
-  if (existing) return NextResponse.next();
-
-  const id = crypto.randomUUID();
-  request.cookies.set(VISITOR_COOKIE, id);
+export async function proxy(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+  const isApi = pathname.startsWith("/api/");
 
   // Secure follows the real protocol. A production build served over plain
   // http, which is what a phone rehearsal on the same wifi looks like, would
@@ -24,17 +37,71 @@ export function proxy(request: NextRequest) {
     (request.headers.get("x-forwarded-proto")?.split(",")[0].trim() ??
       request.nextUrl.protocol.replace(":", "")) === "https";
 
-  const response = NextResponse.next({ request: { headers: request.headers } });
-  response.cookies.set(VISITOR_COOKIE, id, {
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure,
     path: "/",
-    maxAge: COOKIE_MAX_AGE,
-  });
-  return response;
+  };
+
+  let visitorId = request.cookies.get(VISITOR_COOKIE)?.value;
+  const mintedVisitor = !visitorId;
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    request.cookies.set(VISITOR_COOKIE, visitorId);
+  }
+
+  const finish = (response: NextResponse) => {
+    if (mintedVisitor && visitorId) {
+      response.cookies.set(VISITOR_COOKIE, visitorId, {
+        ...cookieOptions,
+        maxAge: COOKIE_MAX_AGE,
+      });
+    }
+    return response;
+  };
+
+  if (!roomGateEnabled()) {
+    return finish(NextResponse.next({ request: { headers: request.headers } }));
+  }
+
+  // A code on the URL wins, then gets removed so it cannot leak onward.
+  const supplied = searchParams.get(CODE_PARAM);
+  if (supplied && (await codeMatches(supplied))) {
+    const token = await roomToken();
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete(CODE_PARAM);
+
+    const response = NextResponse.redirect(clean);
+    if (token) {
+      response.cookies.set(ROOM_COOKIE, token, {
+        ...cookieOptions,
+        maxAge: ROOM_COOKIE_MAX_AGE,
+      });
+    }
+    return finish(response);
+  }
+
+  if (await tokenIsValid(request.cookies.get(ROOM_COOKIE)?.value)) {
+    return finish(NextResponse.next({ request: { headers: request.headers } }));
+  }
+
+  // Locked. An API caller gets a status it can act on, a person gets a form.
+  if (isApi) {
+    return finish(
+      NextResponse.json({ error: "room_locked" }, { status: 401 }),
+    );
+  }
+
+  const unlock = request.nextUrl.clone();
+  unlock.pathname = "/unlock";
+  unlock.search = "";
+  unlock.searchParams.set("next", pathname);
+  return finish(NextResponse.redirect(unlock));
 }
 
 export const config = {
-  matcher: ["/", "/board/:path*", "/api/entries/:path*"],
+  // The admin dashboard carries its own password and is deliberately outside
+  // the room gate: it must stay reachable even if the room code changes.
+  matcher: ["/", "/board", "/board/live", "/api/entries/:path*"],
 };

@@ -9,7 +9,7 @@ Three screens, one database:
 
 | Screen | Path | Built for |
 |---|---|---|
-| Submit | `/board` | Phones. One thumb, two taps, no account |
+| Submit | `/board` | Phones. One thumb, no account. Three tasks opens the full board |
 | Board | `/board/live` | The projector, 1920x1080, read at fifteen feet |
 | Dashboard | `/board/admin` | Your laptop. Every answer, searchable, with moderation |
 
@@ -46,9 +46,10 @@ Project **Settings**, then **Environment Variables**:
 | Name | Required | What it is |
 |---|---|---|
 | `POSTGRES_URL` | Yes | Pooled Postgres connection string. Vercel Postgres and Neon both inject this when the store is linked. `DATABASE_URL` is accepted as a fallback |
-| `ADMIN_PASSWORD` | Yes | The password for `/board/admin`. Pick something you can type on stage without looking |
+| `ADMIN_PASSWORD` | Yes | The password for the dashboard at `/board/admin`. Yours alone. Pick something you can type on stage without looking |
+| `ROOM_PASSCODE` | No | The room code that gates the submit screen and the projected board. Attendees never type it, the QR code carries it. Leave it unset to run with no gate |
 
-Set both for **Production**, **Preview** and **Development**, then redeploy.
+Set them for **Production**, **Preview** and **Development**, then redeploy.
 
 ### 4. Confirm the database is live
 
@@ -128,6 +129,50 @@ these, and a rename should not take the board down.
 Click **Export CSV** on the dashboard. You get every entry including hidden
 ones, with the raw and display-cased function label, the bucket, the timestamp
 and the anonymous submitter id.
+
+---
+
+## Two doors, two keys
+
+| Door | Key | Who holds it |
+|---|---|---|
+| `/board` and `/board/live` | `ROOM_PASSCODE` | The room. Carried by the QR code, so nobody types it |
+| `/board/admin` | `ADMIN_PASSWORD` | You. Deliberately outside the room gate, so it stays reachable if you change the room code mid session |
+
+**How the room code reaches people.** Point the QR at
+`https://your-domain/board?code=GSB24`. The first request swaps the code for a
+cookie, strips it from the address bar so it cannot be screenshotted off a
+neighbour's phone, and lands on the submit screen. The cookie lasts twelve
+hours. Anyone who arrives without it sees a single field and can type the code
+off your slide. Spaces and case are ignored, so `gsb 24` works.
+
+The gate covers the data too: `/api/entries` returns 401 without the cookie, so
+the board is not readable by URL alone.
+
+Leave `ROOM_PASSCODE` unset and the gate disappears entirely.
+
+---
+
+## What an attendee does
+
+One page, phone first, nothing to install.
+
+1. Scan the QR. No typing, no account, no email
+2. Pick one of six task types, pick a function, write one sentence
+3. Repeat until three are in. **The full board opens on the third**
+4. After that, the whole room's board, with their own three marked
+
+**Stuck?** A "shuffle a starting point" button picks a task type and a function
+at random. It is a prompt, not an answer: they still write the task, and they
+can change either choice. It exists because a senior person staring at six
+unfamiliar categories in a room full of peers will sometimes freeze, and a
+random starting point is easier to argue with than a blank form.
+
+The three task price is deliberate and it is the main friction in the design.
+It buys much better data and stops people lurking, at the cost of asking a
+75 year old on a phone to write three sentences instead of one. `REQUIRED_SUBMISSIONS`
+in `src/lib/entries-constants.ts` is the one number to change if the room
+struggles.
 
 ---
 

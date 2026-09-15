@@ -1,17 +1,24 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { FunctionCombobox } from "@/components/function-combobox";
+import { Wordmark } from "@/components/wordmark";
 import type { BoardPayload } from "@/lib/board-payload";
 import { BUCKETS, bucketLabel, type BucketKey } from "@/lib/buckets";
 import { TASK_MAX_LENGTH, TASK_MIN_LENGTH } from "@/lib/entries-constants";
-import { displayFunctionLabel } from "@/lib/functions";
+import { FUNCTION_OPTIONS, displayFunctionLabel } from "@/lib/functions";
 import { useLiveBoard } from "@/lib/use-live-board";
 import { submitEntry, type SubmitResult } from "./actions";
 import styles from "./submit.module.css";
 
 type Props = { initial: BoardPayload };
+
+/** Small counts read better as words in a sentence. */
+const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six"];
+function numberWord(n: number): string {
+  return NUMBER_WORDS[n] ?? String(n);
+}
 
 export function SubmitScreen({ initial }: Props) {
   const { payload, status, adopt } = useLiveBoard({ mode: "submit", initial });
@@ -19,22 +26,30 @@ export function SubmitScreen({ initial }: Props) {
   const [bucket, setBucket] = useState<BucketKey | null>(null);
   const [functionLabel, setFunctionLabel] = useState("");
   const [task, setTask] = useState("");
-  const [error, setError] = useState<SubmitResult & { ok: false } | null>(null);
+  const [error, setError] = useState<(SubmitResult & { ok: false }) | null>(null);
   const [ownIds, setOwnIds] = useState<string[]>(initial.ownIds);
-  const [justSubmitted, setJustSubmitted] = useState<string | null>(null);
-  const [composing, setComposing] = useState(initial.ownIds.length === 0);
+  const [justAdded, setJustAdded] = useState(false);
+  const [composing, setComposing] = useState(true);
   const [pending, startTransition] = useTransition();
 
   const formTopRef = useRef<HTMLDivElement>(null);
   const boardTopRef = useRef<HTMLDivElement>(null);
 
   const view = payload ?? initial;
-  const unlocked = view.unlocked || ownIds.length > 0;
+  const required = view.required;
+  const submitted = Math.max(ownIds.length, view.ownIds.length);
+  const remaining = Math.max(0, required - submitted);
+  const unlocked = view.unlocked || submitted >= required;
 
-  // Server ownership wins once a live frame carries it.
+  // Server ownership wins once a live frame carries more than we know about.
   useEffect(() => {
-    if (payload?.ownIds.length) setOwnIds(payload.ownIds);
-  }, [payload]);
+    if (payload && payload.ownIds.length > ownIds.length) setOwnIds(payload.ownIds);
+  }, [payload, ownIds.length]);
+
+  // Once the quota is met, stop forcing the form open.
+  useEffect(() => {
+    if (unlocked && justAdded) setComposing(false);
+  }, [unlocked, justAdded]);
 
   const taskLength = task.trim().length;
   const canSubmit =
@@ -43,6 +58,20 @@ export function SubmitScreen({ initial }: Props) {
     taskLength >= TASK_MIN_LENGTH &&
     taskLength <= TASK_MAX_LENGTH &&
     !pending;
+
+  /** For anyone staring at six choices with nothing coming. */
+  const shuffle = useCallback(() => {
+    const nextBucket = BUCKETS[Math.floor(Math.random() * BUCKETS.length)].key;
+    const nextFunction = FUNCTION_OPTIONS[Math.floor(Math.random() * FUNCTION_OPTIONS.length)];
+    setBucket(nextBucket === bucket && BUCKETS.length > 1 ? pickOther(bucket) : nextBucket);
+    setFunctionLabel(nextFunction);
+    setError(null);
+  }, [bucket]);
+
+  function pickOther(current: BucketKey): BucketKey {
+    const others = BUCKETS.filter((b) => b.key !== current);
+    return others[Math.floor(Math.random() * others.length)].key;
+  }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -58,26 +87,20 @@ export function SubmitScreen({ initial }: Props) {
         setError(result);
         return;
       }
-      // The action already carries the unlocked board. Show it now rather
-      // than leaving a gap until the next frame arrives.
+      // The action already carries the current board. Show it now rather than
+      // leaving a gap until the next frame arrives.
       adopt(result.payload);
       setOwnIds(result.payload.ownIds);
-      setJustSubmitted(result.entryId);
-      setComposing(false);
+      setJustAdded(true);
       setBucket(null);
       setFunctionLabel("");
       setTask("");
-      requestAnimationFrame(() => {
-        boardTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-  }
 
-  function startAnother() {
-    setComposing(true);
-    setError(null);
-    requestAnimationFrame(() => {
-      formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const done = result.payload.unlocked;
+      requestAnimationFrame(() => {
+        const target = done ? boardTopRef.current : formTopRef.current;
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     });
   }
 
@@ -95,24 +118,35 @@ export function SubmitScreen({ initial }: Props) {
   return (
     <main className={styles.page}>
       <header className={styles.head}>
-        <span className={`wordmark ${styles.mark}`}>
-          Steiger Bean <span className="dot">&bull;</span>
-        </span>
+        <Wordmark className={styles.mark} />
         <span className={styles.proofLabel}>
           Live
-          <span
-            className={styles.liveDot}
-            data-status={status}
-            aria-hidden="true"
-          />
+          <span className={styles.liveDot} data-status={status} aria-hidden="true" />
         </span>
       </header>
 
       <h1 className={styles.title}>Six things this technology is good at</h1>
       <p className={styles.lede}>
-        Add one task from your own company. It appears on the screen at the front of the room.
+        {unlocked
+          ? "You are in. Here is everything the room has put up, updating as it arrives."
+          : `Add ${numberWord(required)} tasks from your own company. The full board opens when you do.`}
       </p>
 
+      {/* Progress ------------------------------------------------------- */}
+      <section className={styles.progress} aria-label="Your progress">
+        <span className={styles.pips} aria-hidden="true">
+          {Array.from({ length: required }, (_, index) => (
+            <span key={index} className={styles.pip} data-on={index < submitted ? "true" : "false"} />
+          ))}
+        </span>
+        <span className={styles.progressText}>
+          {unlocked
+            ? `${submitted} added, board open`
+            : `${submitted} of ${required} added`}
+        </span>
+      </section>
+
+      {/* Proof ---------------------------------------------------------- */}
       <section className={styles.proof} aria-label="Board so far">
         <div className={styles.proofHead}>
           <span className={styles.proofCount}>{view.total}</span>
@@ -121,28 +155,42 @@ export function SubmitScreen({ initial }: Props) {
           </span>
         </div>
 
-        {view.samples.length > 0 ? (
-          <ul className={styles.proofList}>
-            {view.samples.map((sample) => (
-              <li key={sample.id} className={styles.proofItem}>
-                <span className={styles.proofFunction}>
-                  {displayFunctionLabel(sample.function_label)}
-                  {" / "}
-                  {bucketLabel(sample.bucket)}
-                </span>
-                {sample.task}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className={styles.proofEmpty}>Nothing yet. Yours can be first.</p>
-        )}
+        {!unlocked ? (
+          view.samples.length > 0 ? (
+            <ul className={styles.proofList}>
+              {view.samples.map((sample) => (
+                <li key={sample.id} className={styles.proofItem}>
+                  <span className={styles.proofFunction}>
+                    {displayFunctionLabel(sample.function_label)}
+                    {" / "}
+                    {bucketLabel(sample.bucket)}
+                  </span>
+                  {sample.task}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.proofEmpty}>Nothing yet. Yours can be first.</p>
+          )
+        ) : null}
       </section>
 
       <div ref={formTopRef} />
 
       {composing ? (
         <form onSubmit={handleSubmit} noValidate>
+          {justAdded && !unlocked ? (
+            <p className={styles.added}>
+              {remaining === 1
+                ? "Added. One more and the board opens."
+                : `Added. ${numberWord(remaining)} more and the board opens.`}
+            </p>
+          ) : null}
+
+          <button type="button" className={styles.shuffle} onClick={shuffle}>
+            Stuck? Shuffle a starting point
+          </button>
+
           <section className={styles.step}>
             <div className={styles.stepHead}>
               <span className={styles.stepNumber}>1</span>
@@ -219,7 +267,11 @@ export function SubmitScreen({ initial }: Props) {
           </section>
 
           <button type="submit" className={styles.submit} disabled={!canSubmit}>
-            {pending ? "Sending" : "Put it on the board"}
+            {pending
+              ? "Sending"
+              : unlocked
+                ? "Add another"
+                : `Add task ${Math.min(submitted + 1, required)} of ${required}`}
           </button>
 
           {error?.field === "form" ? <p className={styles.error}>{error.message}</p> : null}
@@ -234,24 +286,19 @@ export function SubmitScreen({ initial }: Props) {
 
       {unlocked ? (
         <>
-          {justSubmitted ? (
-            <section className={styles.thanks}>
-              <h2 className={styles.thanksTitle}>That is on the board</h2>
-              <p className={styles.thanksBody}>
-                Look up. Your card is at the top of its column. Here is everything the room has
-                put up so far.
-              </p>
-              {!composing ? (
-                <div className={styles.actions}>
-                  <button type="button" className={styles.actionButton} onClick={startAnother}>
-                    Add another task
-                  </button>
-                </div>
-              ) : null}
-            </section>
-          ) : !composing ? (
+          {!composing ? (
             <div className={styles.actions}>
-              <button type="button" className={styles.actionButton} onClick={startAnother}>
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={() => {
+                  setComposing(true);
+                  setJustAdded(false);
+                  requestAnimationFrame(() =>
+                    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  );
+                }}
+              >
                 Add another task
               </button>
             </div>
@@ -271,11 +318,7 @@ export function SubmitScreen({ initial }: Props) {
                     {group.items.map((entry) => {
                       const own = ownSet.has(entry.id);
                       return (
-                        <li
-                          key={entry.id}
-                          className={styles.card}
-                          data-own={own ? "true" : "false"}
-                        >
+                        <li key={entry.id} className={styles.card} data-own={own ? "true" : "false"}>
                           <span className={styles.cardFunction}>
                             {displayFunctionLabel(entry.function_label)}
                             {own ? <span className={styles.ownTag}>Yours</span> : null}

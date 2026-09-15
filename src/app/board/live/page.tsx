@@ -1,4 +1,5 @@
 import { buildBoardPayload, type BoardPayload } from "@/lib/board-payload";
+import { REQUIRED_SUBMISSIONS } from "@/lib/entries-constants";
 import { LiveBoard } from "./live-board";
 
 export const dynamic = "force-dynamic";
@@ -7,6 +8,8 @@ const EMPTY: BoardPayload = {
   version: "boot",
   total: 0,
   unlocked: true,
+  remaining: 0,
+  required: REQUIRED_SUBMISSIONS,
   ownIds: [],
   entries: [],
   samples: [],

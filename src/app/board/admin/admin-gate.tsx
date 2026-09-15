@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { Wordmark } from "@/components/wordmark";
 import { signIn } from "./actions";
 import styles from "./admin.module.css";
 
@@ -14,9 +15,7 @@ export function AdminGate({ configured }: { configured: boolean }) {
 
   return (
     <main className={styles.gate}>
-      <span className={`wordmark ${styles.mark}`}>
-        Steiger Bean <span className="dot">&bull;</span>
-      </span>
+      <Wordmark className={styles.mark} />
       <h1 className={styles.gateTitle}>Session control</h1>
       <p className={styles.gateLede}>
         {configured
