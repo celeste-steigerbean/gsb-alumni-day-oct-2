@@ -207,18 +207,36 @@ represented), and hidden.
 
 **The coverage matrix**
 
-The slide, live. Six task types down the side, every function the room has
-actually named across the top, a gold dot where the two meet and a count when a
-cell holds more than one. Row and column totals sit on the edges, so it carries
-the per type and per function distributions without a second chart.
+The slide, live, with the words in it. Six task types down the side, every
+function the room has actually named across the top, and inside each cell the
+tasks people wrote out in full.
 
-The filled cells are not the point. A caption under the grid reads "7 of 36
+The grid grows as the room fills it. New functions add columns, each answer
+makes its cell taller, and a note fades in where it lands. An empty cell stays a
+small outlined marker rather than stretching to match its tallest neighbour, so
+the gaps read as gaps and not as holes.
+
+The filled cells are not the point. A caption under the grid reads "24 of 108
 cells filled. Nobody has looked at the rest," which is the line the exercise
 exists to earn.
 
-Every cell, row label and column header is a filter. Tapping a cell narrows the
-table underneath to the entries behind that dot, and a chip above the table
-clears it. Empty cells are inert, since there is nothing to show.
+Row and column labels are filters, each carrying its own count. Clicking one
+narrows the table underneath, and a chip above the table clears it.
+
+Examples carry a dashed edge and quieter text, so a prop never reads as
+somebody's answer.
+
+**Seeding examples**
+
+Twenty four worked examples ship with the app, four per task type, spread
+across functions so the grid shows breadth rather than a stripe. **Add 6
+examples** puts in the next batch and can be clicked repeatedly to top up if the
+room is slow to start; it never duplicates, and says how many of the twenty four
+are showing. **Remove the examples** deletes them outright rather than hiding
+them, so they never pollute the CSV.
+
+The library lives in `src/lib/seed-examples.ts` if you want to swap in your
+own.
 
 **The entries table**
 

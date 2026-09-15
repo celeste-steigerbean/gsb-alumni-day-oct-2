@@ -8,12 +8,13 @@ import {
   revokeAdmin,
 } from "@/lib/admin-auth";
 import {
+  clearSeedEntries,
   getAdminEntries,
-  hideSeedEntries,
   seedExamples,
   setEntryHidden,
   type AdminEntry,
 } from "@/lib/entries";
+import { SEED_BATCH_SIZE } from "@/lib/seed-examples";
 
 export type AdminResult =
   | { ok: true; entries: AdminEntry[]; note?: string }
@@ -63,17 +64,18 @@ export async function toggleHidden(id: string, hidden: boolean): Promise<AdminRe
   }
 }
 
-export async function seedBoard(): Promise<AdminResult> {
+export async function seedBoard(batch: number = SEED_BATCH_SIZE): Promise<AdminResult> {
   const denied = await guard();
   if (denied) return { ok: false, message: denied };
   try {
-    const result = await seedExamples();
+    const result = await seedExamples(batch);
     return {
       ok: true,
       entries: await getAdminEntries(),
-      note: result.alreadySeeded
-        ? "The three examples are already on the board."
-        : "Three examples added.",
+      note:
+        result.inserted === 0
+          ? `All ${result.available} examples are already on the board.`
+          : `${result.inserted} examples added. ${result.seeded} of ${result.available} now showing.`,
     };
   } catch (error) {
     console.error("[admin] seed failed", error);
@@ -85,14 +87,14 @@ export async function clearSeeds(): Promise<AdminResult> {
   const denied = await guard();
   if (denied) return { ok: false, message: denied };
   try {
-    const count = await hideSeedEntries();
+    const count = await clearSeedEntries();
     return {
       ok: true,
       entries: await getAdminEntries(),
-      note: count === 0 ? "No examples were showing." : `${count} examples hidden.`,
+      note: count === 0 ? "No examples to remove." : `${count} examples removed.`,
     };
   } catch (error) {
     console.error("[admin] clear seeds failed", error);
-    return { ok: false, message: "Could not hide the examples." };
+    return { ok: false, message: "Could not remove the examples." };
   }
 }

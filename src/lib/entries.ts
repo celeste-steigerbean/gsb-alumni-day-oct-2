@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import type { BucketKey } from "./buckets";
 import { query } from "./db";
 import { SEED_COOKIE_ID } from "./entries-constants";
+import { SEED_BATCH_SIZE, SEED_EXAMPLES } from "./seed-examples";
 
 export type Entry = {
   id: string;
@@ -154,57 +155,46 @@ export async function setEntryHidden(id: string, hidden: boolean): Promise<void>
   invalidateBoardCache();
 }
 
-export async function hideSeedEntries(): Promise<number> {
+/**
+ * Removes the examples outright rather than hiding them. They are props, not
+ * anybody's answer, so leaving them in the export would pollute the record.
+ */
+export async function clearSeedEntries(): Promise<number> {
   const rows = await query<{ id: string }>(
-    `UPDATE entries SET hidden = TRUE
-      WHERE submitter_cookie_id = $1 AND hidden = FALSE
-      RETURNING id`,
+    `DELETE FROM entries WHERE submitter_cookie_id = $1 RETURNING id`,
     [SEED_COOKIE_ID],
   );
-  invalidateBoardCache();
+  if (rows.length > 0) invalidateBoardCache();
   return rows.length;
 }
 
-const SEED_ENTRIES: Array<{ bucket: BucketKey; functionLabel: string; task: string }> = [
-  {
-    bucket: "MONITOR",
-    functionLabel: "Regulatory affairs",
-    task: "Watch four agency feeds for rules touching our device class. Analyst skims them Monday.",
-  },
-  {
-    bucket: "SYNTHESIZE",
-    functionLabel: "Investor relations",
-    task: "Turn thirty LP calls into one themes memo. An associate reads every transcript today.",
-  },
-  {
-    bucket: "PRESSURE_TEST",
-    functionLabel: "Corporate development",
-    task: "Argue the seller side of our acquisition thesis. Two partners do this over dinner.",
-  },
-];
-
-/**
- * Three examples so the board is never empty when the room walks in. A no-op
- * if the seed entries are already showing, so a second click cannot duplicate.
- */
-export async function seedExamples(): Promise<{ inserted: number; alreadySeeded: boolean }> {
-  const existing = await query<{ count: string }>(
-    `SELECT count(*)::text AS count
-       FROM entries
-      WHERE submitter_cookie_id = $1 AND hidden = FALSE`,
+export async function seedExamples(
+  batch: number = SEED_BATCH_SIZE,
+): Promise<{ inserted: number; seeded: number; available: number }> {
+  const existing = await query<{ task: string }>(
+    `SELECT task FROM entries WHERE submitter_cookie_id = $1`,
     [SEED_COOKIE_ID],
   );
-  if (Number(existing[0]?.count ?? 0) > 0) {
-    return { inserted: 0, alreadySeeded: true };
-  }
+  const already = new Set(existing.map((row) => row.task));
 
-  for (const seed of SEED_ENTRIES) {
+  // Only ever add examples that are not already in the table, so clicking
+  // the button twice tops up rather than duplicating.
+  const remaining = SEED_EXAMPLES.filter((example) => !already.has(example.task));
+  const batchToAdd = remaining.slice(0, Math.max(0, batch));
+
+  for (const example of batchToAdd) {
     await query(
       `INSERT INTO entries (bucket, function_label, task, submitter_cookie_id)
        VALUES ($1, $2, $3, $4)`,
-      [seed.bucket, seed.functionLabel, seed.task, SEED_COOKIE_ID],
+      [example.bucket, example.functionLabel, example.task, SEED_COOKIE_ID],
     );
   }
-  invalidateBoardCache();
-  return { inserted: SEED_ENTRIES.length, alreadySeeded: false };
+
+  if (batchToAdd.length > 0) invalidateBoardCache();
+
+  return {
+    inserted: batchToAdd.length,
+    seeded: already.size + batchToAdd.length,
+    available: SEED_EXAMPLES.length,
+  };
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { BUCKETS, type BucketKey } from "@/lib/buckets";
 import type { AdminEntry } from "@/lib/entries";
+import { SEED_COOKIE_ID } from "@/lib/entries-constants";
 import { displayFunctionLabel } from "@/lib/functions";
 import styles from "./admin.module.css";
 
@@ -16,42 +17,67 @@ type Props = {
   onSelect: (next: Selection) => void;
 };
 
+/** How long a newly arrived note keeps its entrance animation. */
+const ARRIVAL_MS = 1_600;
+
 /**
- * The slide, live. Six task types down the side, the functions the room has
- * actually named across the top, and a dot where the two meet.
+ * The slide, live, with the words in it.
  *
- * The filled cells are not the point. The empty ones are: the grid shows at a
- * glance how much of their own organisation nobody has thought to point this
- * at. Every cell is a filter, so a dot that surprises you is one tap from the
- * entries behind it.
+ * Six task types down the side, every function the room has actually named
+ * across the top, and inside each cell the tasks people wrote. The grid grows
+ * as the room fills it: columns appear with new functions, cells get taller
+ * with each answer, and new notes fade in where they land.
+ *
+ * The empty cells still carry the message. They are drawn, not collapsed.
  */
 export function CoverageMatrix({ entries, selection, onSelect }: Props) {
-  const { functions, counts, rowTotals, colTotals, filled, cells } = useMemo(() => {
-    const counts = new Map<string, number>();
+  const { functions, byCell, rowTotals, colTotals, filled, cells } = useMemo(() => {
+    const byCell = new Map<string, AdminEntry[]>();
     const byFunction = new Map<string, number>();
     const byBucket = new Map<BucketKey, number>();
 
-    for (const entry of entries) {
+    // Oldest first inside a cell, so new answers land at the bottom and the
+    // ones already read do not jump around.
+    for (const entry of [...entries].reverse()) {
       const fn = displayFunctionLabel(entry.function_label);
-      counts.set(`${entry.bucket}|${fn}`, (counts.get(`${entry.bucket}|${fn}`) ?? 0) + 1);
+      const key = `${entry.bucket}|${fn}`;
+      const list = byCell.get(key);
+      if (list) list.push(entry);
+      else byCell.set(key, [entry]);
       byFunction.set(fn, (byFunction.get(fn) ?? 0) + 1);
       byBucket.set(entry.bucket, (byBucket.get(entry.bucket) ?? 0) + 1);
     }
 
-    // Busiest functions first, so the columns that carry the story come first
-    // and the long tail falls off the right edge rather than the middle.
     const functions = [...byFunction.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .map(([name]) => name);
 
     return {
       functions,
-      counts,
+      byCell,
       rowTotals: byBucket,
       colTotals: byFunction,
-      filled: counts.size,
+      filled: byCell.size,
       cells: BUCKETS.length * functions.length,
     };
+  }, [entries]);
+
+  // Fade in whatever was not here a moment ago, so the grid reads as filling.
+  const [arriving, setArriving] = useState<Set<string>>(new Set());
+  const seenRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const current = new Set(entries.map((entry) => entry.id));
+    if (seenRef.current === null) {
+      seenRef.current = current;
+      return;
+    }
+    const fresh = new Set<string>();
+    for (const id of current) if (!seenRef.current.has(id)) fresh.add(id);
+    seenRef.current = current;
+    if (fresh.size === 0) return;
+    setArriving(fresh);
+    const timer = window.setTimeout(() => setArriving(new Set()), ARRIVAL_MS);
+    return () => window.clearTimeout(timer);
   }, [entries]);
 
   if (functions.length === 0) {
@@ -59,14 +85,11 @@ export function CoverageMatrix({ entries, selection, onSelect }: Props) {
       <section className={styles.matrixPanel}>
         <h2 className={styles.panelTitle}>Six tasks, and every function you have</h2>
         <p className={styles.panelEmpty}>
-          The grid fills in as the room submits. Nothing yet.
+          The grid fills in as the room submits. Nothing yet, so seed a few examples below.
         </p>
       </section>
     );
   }
-
-  const isSelected = (bucket: BucketKey, fn: string) =>
-    selection.bucket === bucket && selection.fn === fn;
 
   return (
     <section className={styles.matrixPanel}>
@@ -94,12 +117,10 @@ export function CoverageMatrix({ entries, selection, onSelect }: Props) {
                     }
                   >
                     {fn}
+                    <span className={styles.headCount}>{colTotals.get(fn) ?? 0}</span>
                   </button>
                 </th>
               ))}
-              <th scope="col" className={styles.matrixTotalHead}>
-                All
-              </th>
             </tr>
           </thead>
 
@@ -122,58 +143,37 @@ export function CoverageMatrix({ entries, selection, onSelect }: Props) {
                     }
                   >
                     {definition.label}
+                    <span className={styles.headCount}>{rowTotals.get(definition.key) ?? 0}</span>
                   </button>
                 </th>
 
                 {functions.map((fn) => {
-                  const count = counts.get(`${definition.key}|${fn}`) ?? 0;
+                  const list = byCell.get(`${definition.key}|${fn}`) ?? [];
                   return (
                     <td key={fn} className={styles.matrixCell}>
-                      <button
-                        type="button"
-                        className={styles.cell}
-                        data-filled={count > 0 ? "true" : "false"}
-                        data-on={isSelected(definition.key, fn) ? "true" : "false"}
-                        disabled={count === 0}
-                        aria-label={`${definition.label}, ${fn}, ${count} ${
-                          count === 1 ? "task" : "tasks"
-                        }`}
-                        onClick={() =>
-                          onSelect(
-                            isSelected(definition.key, fn)
-                              ? { bucket: null, fn: null }
-                              : { bucket: definition.key, fn },
-                          )
-                        }
-                      >
-                        {count > 0 ? (
-                          <>
-                            <span className={styles.dot} aria-hidden="true" />
-                            {count > 1 ? (
-                              <span className={styles.cellCount}>{count}</span>
-                            ) : null}
-                          </>
-                        ) : null}
-                      </button>
+                      {/* The box lives inside the cell, not on it. A table cell
+                          stretches to the tallest in its row, which would turn
+                          every empty marker into a large void. */}
+                      <div className={styles.cellBox} data-filled={list.length > 0 ? "true" : "false"}>
+                        {list.map((entry) => (
+                          <article
+                            key={entry.id}
+                            className={`${styles.note} ${
+                              arriving.has(entry.id) ? styles.noteArrive : ""
+                            }`}
+                            data-example={
+                              entry.submitter_cookie_id === SEED_COOKIE_ID ? "true" : "false"
+                            }
+                          >
+                            {entry.task}
+                          </article>
+                        ))}
+                      </div>
                     </td>
                   );
                 })}
-
-                <td className={styles.matrixTotal}>{rowTotals.get(definition.key) ?? 0}</td>
               </tr>
             ))}
-
-            <tr className={styles.matrixTotalsRow}>
-              <th scope="row" className={styles.matrixRowHead}>
-                All
-              </th>
-              {functions.map((fn) => (
-                <td key={fn} className={styles.matrixTotal}>
-                  {colTotals.get(fn) ?? 0}
-                </td>
-              ))}
-              <td className={styles.matrixTotal}>{entries.length}</td>
-            </tr>
           </tbody>
         </table>
       </div>

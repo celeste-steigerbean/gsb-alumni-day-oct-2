@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { BUCKETS, bucketLabel, type BucketKey } from "@/lib/buckets";
 import type { AdminEntry } from "@/lib/entries";
 import { SEED_COOKIE_ID } from "@/lib/entries-constants";
+import { SEED_BATCH_SIZE, SEED_EXAMPLES } from "@/lib/seed-examples";
 import { displayFunctionLabel } from "@/lib/functions";
 import { Wordmark } from "@/components/wordmark";
 import {
@@ -177,7 +178,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           <span className={styles.tileLabel}>On the board</span>
           {stats.seeded > 0 ? (
             <span className={styles.tileNote}>
-              {stats.seeded} of these are seeded examples
+{stats.seeded} of these are examples, {SEED_EXAMPLES.length - stats.seeded} more available
             </span>
           ) : null}
         </div>
@@ -213,7 +214,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           disabled={pending}
           onClick={() => startTransition(async () => absorb(await seedBoard()))}
         >
-          Seed three examples
+          Add {SEED_BATCH_SIZE} examples
         </button>
         <button
           type="button"
@@ -222,7 +223,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           disabled={pending || stats.seeded === 0}
           onClick={() => startTransition(async () => absorb(await clearSeeds()))}
         >
-          Hide the examples
+          Remove the examples
         </button>
         <a className={styles.tool} href="/api/admin/export">
           Export CSV
