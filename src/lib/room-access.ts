@@ -16,12 +16,19 @@ export const ROOM_COOKIE = "sb_room";
 export const ROOM_COOKIE_MAX_AGE = 60 * 60 * 12;
 export const CODE_PARAM = "code";
 
+/**
+ * Baked in so the board is gated correctly with zero configuration. Override
+ * with ROOM_PASSCODE in the host settings; set it to "open" to remove the gate.
+ */
+export const DEFAULT_ROOM_PASSCODE = "GSB26";
+
 export function roomPasscode(): string | null {
-  const value = process.env.ROOM_PASSCODE?.trim();
-  return value ? value : null;
+  const configured = process.env.ROOM_PASSCODE?.trim();
+  if (configured && configured.toLowerCase() === "open") return null;
+  return configured || DEFAULT_ROOM_PASSCODE;
 }
 
-/** No passcode configured means the board is open, which is a valid setup. */
+/** False only when ROOM_PASSCODE is explicitly set to "open". */
 export function roomGateEnabled(): boolean {
   return roomPasscode() !== null;
 }

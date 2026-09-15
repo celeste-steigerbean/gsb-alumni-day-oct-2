@@ -11,6 +11,7 @@ const EMPTY: BoardPayload = {
   remaining: 0,
   required: REQUIRED_SUBMISSIONS,
   ownIds: [],
+  ownEntries: [],
   entries: [],
   samples: [],
 };

@@ -20,8 +20,12 @@ function numberWord(n: number): string {
   return NUMBER_WORDS[n] ?? String(n);
 }
 
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export function SubmitScreen({ initial }: Props) {
-  const { payload, status, adopt } = useLiveBoard({ mode: "submit", initial });
+  const { payload, status, error: liveError, adopt } = useLiveBoard({ mode: "submit", initial });
 
   const [bucket, setBucket] = useState<BucketKey | null>(null);
   const [functionLabel, setFunctionLabel] = useState("");
@@ -129,21 +133,45 @@ export function SubmitScreen({ initial }: Props) {
       <p className={styles.lede}>
         {unlocked
           ? "You are in. Here is everything the room has put up, updating as it arrives."
-          : `Add ${numberWord(required)} tasks from your own company. The full board opens when you do.`}
+          : `Add ${numberWord(required)} tasks from your own company. A few words each is plenty. The whole board opens on the last one.`}
       </p>
 
       {/* Progress ------------------------------------------------------- */}
-      <section className={styles.progress} aria-label="Your progress">
-        <span className={styles.pips} aria-hidden="true">
-          {Array.from({ length: required }, (_, index) => (
-            <span key={index} className={styles.pip} data-on={index < submitted ? "true" : "false"} />
-          ))}
-        </span>
-        <span className={styles.progressText}>
-          {unlocked
-            ? `${submitted} added, board open`
-            : `${submitted} of ${required} added`}
-        </span>
+      <section className={styles.slots} aria-label="Your three tasks">
+        <h2 className={styles.slotsTitle}>
+          {unlocked ? `Your ${numberWord(submitted)} tasks` : `Your three tasks`}
+        </h2>
+        <ol className={styles.slotList}>
+          {Array.from({ length: Math.max(required, submitted) }, (_, index) => {
+            const entry = view.ownEntries[index];
+            return (
+              <li
+                key={index}
+                className={styles.slot}
+                data-filled={entry ? "true" : "false"}
+                data-next={!entry && index === submitted ? "true" : "false"}
+              >
+                <span className={styles.slotMark} aria-hidden="true">
+                  {entry ? "\u2713" : index + 1}
+                </span>
+                {entry ? (
+                  <span className={styles.slotBody}>
+                    <span className={styles.slotMeta}>
+                      {bucketLabel(entry.bucket)}
+                      {" / "}
+                      {displayFunctionLabel(entry.function_label)}
+                    </span>
+                    <span className={styles.slotTask}>{entry.task}</span>
+                  </span>
+                ) : (
+                  <span className={styles.slotEmpty}>
+                    {index === submitted ? "Add this one next" : "Not yet"}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
       </section>
 
       {/* Proof ---------------------------------------------------------- */}
@@ -155,7 +183,9 @@ export function SubmitScreen({ initial }: Props) {
           </span>
         </div>
 
-        {!unlocked ? (
+        {/* Samples exist to prove the board is real. Once someone has added
+            their own, that job is done and repeating them is just noise. */}
+        {!unlocked && submitted === 0 ? (
           view.samples.length > 0 ? (
             <ul className={styles.proofList}>
               {view.samples.map((sample) => (
@@ -175,6 +205,12 @@ export function SubmitScreen({ initial }: Props) {
         ) : null}
       </section>
 
+      {liveError && status === "stalled" ? (
+        <p className={styles.offline}>
+          Not connected to the board right now. Your phone keeps trying, so leave this open.
+        </p>
+      ) : null}
+
       <div ref={formTopRef} />
 
       {composing ? (
@@ -182,8 +218,8 @@ export function SubmitScreen({ initial }: Props) {
           {justAdded && !unlocked ? (
             <p className={styles.added}>
               {remaining === 1
-                ? "Added. One more and the board opens."
-                : `Added. ${numberWord(remaining)} more and the board opens.`}
+                ? `That is ${numberWord(submitted)}. One more and the whole board opens.`
+                : `That is ${numberWord(submitted)}. ${capitalize(numberWord(remaining))} more to go.`}
             </p>
           ) : null}
 

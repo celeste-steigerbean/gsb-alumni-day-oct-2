@@ -22,6 +22,7 @@ export default async function BoardPage() {
       remaining: REQUIRED_SUBMISSIONS,
       required: REQUIRED_SUBMISSIONS,
       ownIds: [],
+      ownEntries: [],
       entries: null,
       samples: [],
     };

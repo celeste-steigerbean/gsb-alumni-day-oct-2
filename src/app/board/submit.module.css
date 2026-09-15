@@ -114,51 +114,129 @@
   color: var(--muted);
 }
 
-/* Progress --------------------------------------------------------------- */
+/* The three slots --------------------------------------------------------- */
 
-.progress {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 22px;
+.slots {
+  margin-bottom: 30px;
+  padding: 18px 18px 20px;
+  background: var(--panel-inset);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
 }
 
-.pips {
-  display: inline-flex;
-  gap: 7px;
-  flex: 0 0 auto;
-}
-
-.pip {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  border: 1px solid var(--hairline-strong);
-  background: transparent;
-  transition: background 220ms linear;
-}
-
-.pip[data-on="true"] {
-  background: var(--gold);
-  border-color: var(--gold);
-}
-
-.progressText {
+.slotsTitle {
   font-size: 14px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin: 0 0 14px;
+}
+
+.slotList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  counter-reset: none;
+}
+
+.slot {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+}
+
+.slot[data-filled="true"] {
+  background: var(--panel);
+  border-color: rgba(201, 169, 110, 0.22);
+}
+
+.slot[data-next="true"] {
+  border-color: var(--hairline-strong);
+  border-style: dashed;
+}
+
+.slotMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  font-size: 15px;
+  line-height: 1;
   color: var(--muted);
-  line-height: 1.4;
+}
+
+.slot[data-filled="true"] .slotMark {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--midnight);
+}
+
+.slot[data-next="true"] .slotMark {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.slotBody {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.slotMeta {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  line-height: 1.35;
+}
+
+.slotTask {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ivory);
+  overflow-wrap: break-word;
+}
+
+.slotEmpty {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.slot[data-next="true"] .slotEmpty {
+  color: var(--ivory);
 }
 
 .added {
   margin: 0 0 18px;
   padding: 13px 16px;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--ivory);
   background: var(--panel);
   border: 1px solid rgba(201, 169, 110, 0.2);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+}
+
+.offline {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ivory);
+  background: var(--panel-inset);
+  border: 1px solid var(--hairline-strong);
   border-left: 2px solid var(--gold);
   border-radius: var(--radius);
 }

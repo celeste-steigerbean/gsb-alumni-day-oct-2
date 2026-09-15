@@ -18,6 +18,8 @@ export type BoardPayload = {
   required: number;
   /** Ids belonging to this visitor, so their own cards can be marked. */
   ownIds: string[];
+  /** This visitor's own entries, newest last. Never withheld: they wrote them. */
+  ownEntries: Entry[];
   /** Every visible entry, newest first. Null while the board is still locked. */
   entries: Entry[] | null;
   /** The three newest entries, shown before a visitor has submitted. */
@@ -45,6 +47,12 @@ export async function buildBoardPayload(options: {
       ? []
       : await getEntryIdsForCookie(options.visitorId);
 
+  const ownSet = new Set(ownIds);
+  const ownEntries = snapshot.entries
+    .filter((entry) => ownSet.has(entry.id))
+    .slice()
+    .reverse();
+
   const unlocked = options.mode === "live" || ownIds.length >= REQUIRED_SUBMISSIONS;
   const remaining = Math.max(0, REQUIRED_SUBMISSIONS - ownIds.length);
 
@@ -55,6 +63,7 @@ export async function buildBoardPayload(options: {
     remaining,
     required: REQUIRED_SUBMISSIONS,
     ownIds,
+    ownEntries,
     entries: unlocked ? snapshot.entries : null,
     samples: snapshot.entries.slice(0, SAMPLE_COUNT),
   };
