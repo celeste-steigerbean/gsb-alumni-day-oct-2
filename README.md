@@ -10,7 +10,8 @@ Three screens, one database:
 | Screen | Path | Built for |
 |---|---|---|
 | Submit | `/board` | Phones. One thumb, no account. Three tasks opens the full board |
-| Board | `/board/live` | The projector, 1920x1080, read at fifteen feet |
+| Matrix | `/board/matrix` | The projector. The slide, live and turning itself over |
+| Board | `/board/live` | The projector, six scrolling columns |
 | Dashboard | `/board/admin` | Your laptop. Every answer, searchable, with moderation |
 
 The submit screen is the only one tuned for a small screen. The dashboard is
@@ -263,6 +264,36 @@ Every row has a **Hide** toggle. Hiding drops the entry off the projected board
 within about half a second, with no reload and without touching the board
 machine. Hidden rows stay in the list, dimmed, with a **Show** button, and they
 stay in the database and in the CSV.
+
+---
+
+## Projecting the matrix
+
+`/board/matrix` is the slide, live. Full bleed, no cursor, no chrome, so you
+open it on the projected screen and press full screen in the browser. It sits
+behind the same room code as everything else, so the QR link pattern works:
+`/board/matrix?code=GSB26`.
+
+Six task types always fill the height, whatever is in them. A crowded cell
+clamps its answer to three lines rather than stealing the row, because losing
+the last three task types off the bottom of the screen loses the one structure
+the exercise is built on.
+
+**It turns itself over every forty five seconds.** Not every function fits
+across a screen, and nobody is going to walk over and scroll a projector, so
+the grid pages through the columns and through the answers inside a crowded
+cell on the same beat. A thin gold line sweeps across the bottom as a countdown,
+so a change never reads as a glitch, and the corner shows which page of how
+many.
+
+| Flag | Default | What it does |
+|---|---|---|
+| `?columns=5` | `4` | How many functions are on screen at once. Clamped to 2 to 10 |
+| `?notes=2` | `1` | How many answers show inside one cell. Clamped to 1 to 6 |
+| `?rotate=30` | `45` | Seconds between turns. `0` holds the grid still |
+| `?transport=poll` | off | Skips the live stream and polls instead |
+
+They combine: `/board/matrix?code=GSB26&columns=5&rotate=30`.
 
 ---
 

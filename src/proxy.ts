@@ -103,5 +103,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // The admin dashboard carries its own password and is deliberately outside
   // the room gate: it must stay reachable even if the room code changes.
-  matcher: ["/", "/board", "/board/live", "/api/entries/:path*"],
+  matcher: ["/", "/board", "/board/live", "/board/matrix", "/api/entries/:path*"],
 };

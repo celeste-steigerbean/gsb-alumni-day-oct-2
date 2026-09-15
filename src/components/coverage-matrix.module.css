@@ -1,0 +1,334 @@
+/* The coverage matrix, in two sizes.
+   Dashboard: a panel on a laptop, clickable, scrollable.
+   Projection: fills the screen, turns itself over, nothing to click.
+
+   Text is deliberately bright in both. This is read from the back of a room,
+   and a muted grey that looks refined on a laptop disappears on a projector. */
+
+.panel {
+  --note-size: 14px;
+  --label-size: 14px;
+  --col-width: 230px;
+  --row-width: 150px;
+  --gap: 6px;
+
+  position: relative;
+  padding: 20px 22px 18px;
+  background: var(--panel-inset);
+  border: 1px solid rgba(201, 169, 110, 0.18);
+  border-radius: var(--radius);
+}
+
+.panel[data-variant="projection"] {
+  --note-size: 22px;
+  --label-size: 23px;
+  --col-width: 330px;
+  --row-width: 235px;
+  --gap: 10px;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 34px 22px;
+  background: var(--midnight);
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  cursor: none;
+  user-select: none;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex: 0 0 auto;
+}
+
+.title {
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin: 0 0 18px;
+  font-weight: 300;
+}
+
+.panel[data-variant="projection"] .title {
+  font-family: var(--serif);
+  font-size: 34px;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--ivory);
+  margin-bottom: 14px;
+}
+
+.pager {
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.empty {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.panel[data-variant="projection"] .empty {
+  font-family: var(--serif);
+  font-size: 46px;
+  color: var(--ivory);
+  margin: auto;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.panel[data-variant="projection"] .scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: var(--gap);
+  margin: 0 calc(var(--gap) * -1);
+  table-layout: fixed;
+}
+
+/* Six equal rows, always. A crowded cell used to blow out its row and push
+   the last three task types off the bottom of the screen, which loses the one
+   structure the whole exercise is built on.
+
+   A table row treats height as a minimum and grows anyway, so the projected
+   grid is laid out with CSS Grid instead. The markup stays a table, which is
+   what this data is, and display:contents hands the cells to the grid. */
+.panel[data-variant="projection"] .matrix {
+  display: grid;
+  grid-template-columns: var(--row-width) repeat(var(--cols, 4), minmax(0, 1fr));
+  grid-template-rows: auto repeat(6, minmax(0, 1fr));
+  gap: var(--gap);
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-spacing: 0;
+}
+
+.panel[data-variant="projection"] .matrix thead,
+.panel[data-variant="projection"] .matrix tbody,
+.panel[data-variant="projection"] .matrix tr {
+  display: contents;
+}
+
+.panel[data-variant="projection"] .colHead,
+.panel[data-variant="projection"] .rowHead,
+.panel[data-variant="projection"] .cell,
+.panel[data-variant="projection"] .corner {
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.corner {
+  width: var(--row-width);
+}
+
+.colHead {
+  font-weight: 300;
+  vertical-align: bottom;
+  text-align: left;
+  padding: 0 0 8px;
+  width: var(--col-width);
+  min-width: var(--col-width);
+}
+
+.rowHead {
+  font-weight: 300;
+  vertical-align: top;
+  text-align: left;
+  padding: 4px 14px 0 0;
+  width: var(--row-width);
+  min-width: var(--row-width);
+}
+
+.headButton,
+.headLabel {
+  display: block;
+  text-align: left;
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  /* Ivory, not muted. These are headings on a projected screen. */
+  color: var(--ivory);
+  background: transparent;
+  padding: 4px 2px;
+  border-radius: var(--radius);
+  line-height: 1.35;
+}
+
+.headButton:hover,
+.headButton[data-on="true"] {
+  color: var(--gold);
+}
+
+.panel[data-variant="projection"] .headLabel {
+  color: var(--gold);
+  letter-spacing: 0.16em;
+}
+
+.headCount {
+  margin-left: 8px;
+  font-family: var(--serif);
+  font-size: calc(var(--label-size) + 2px);
+  letter-spacing: 0;
+  color: var(--muted);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.panel[data-variant="projection"] .headCount {
+  color: var(--ivory);
+}
+
+.cell {
+  vertical-align: top;
+  padding: 0;
+}
+
+/* An empty cell is still drawn. The gaps are the point of this grid, but a
+   gap the height of its tallest neighbour is just a hole, so the box hugs
+   its own content and the cell around it does the stretching. */
+.box {
+  padding: var(--gap);
+  min-height: 46px;
+  border: 1px solid rgba(201, 169, 110, 0.14);
+  border-radius: var(--radius);
+  background: transparent;
+}
+
+.panel[data-variant="projection"] .box {
+  min-height: 0;
+  height: 100%;
+  padding: 8px;
+  overflow: hidden;
+  border-color: rgba(201, 169, 110, 0.22);
+}
+
+.box[data-filled="true"] {
+  border-color: var(--hairline-strong);
+  background: rgba(59, 27, 34, 0.55);
+}
+
+.note {
+  font-size: var(--note-size);
+  line-height: 1.5;
+  color: var(--ivory);
+  background: var(--panel);
+  border: 1px solid rgba(201, 169, 110, 0.24);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 9px 11px;
+  overflow-wrap: break-word;
+}
+
+.panel[data-variant="projection"] .note {
+  padding: 10px 12px;
+  line-height: 1.35;
+  min-height: 0;
+}
+
+/* The clamp lives on its own element. Put it on the note itself and
+   overflow:hidden clips at the padding box, which leaves the bottom padding
+   as a window for a fourth line to show through. */
+.panel[data-variant="projection"] .noteText {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: calc(1.35em * 3);
+}
+
+.note + .note {
+  margin-top: var(--gap);
+}
+
+/* An example is a prop, not somebody's answer. The dashed edge says so.
+   It keeps full brightness: dimming it made it unreadable on a projector. */
+.note[data-example="true"] {
+  border-left-style: dashed;
+}
+
+.more {
+  display: block;
+  margin-top: var(--gap);
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+}
+
+.panel[data-variant="projection"] .more {
+  display: none;
+}
+
+.noteArrive {
+  animation: noteIn 900ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+
+@keyframes noteIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.caption {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ivory);
+  flex: 0 0 auto;
+}
+
+.panel[data-variant="projection"] .caption {
+  font-size: 24px;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+/* A quiet countdown to the next turn, so a change never feels like a glitch. */
+.progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--gold);
+  opacity: 0.6;
+  animation-name: sweep;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes sweep {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}

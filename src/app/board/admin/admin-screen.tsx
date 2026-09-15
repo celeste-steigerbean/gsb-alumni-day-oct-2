@@ -17,7 +17,7 @@ import {
   toggleHidden,
   type AdminResult,
 } from "./actions";
-import { CoverageMatrix, type Selection } from "./coverage-matrix";
+import { CoverageMatrix, type Selection } from "@/components/coverage-matrix";
 import styles from "./admin.module.css";
 
 /** The dashboard refreshes on its own so two devices stay in step. */
@@ -202,7 +202,10 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
       </section>
 
       <CoverageMatrix
-        entries={visible}
+        entries={visible.map((entry) => ({
+          ...entry,
+          isExample: entry.submitter_cookie_id === SEED_COOKIE_ID,
+        }))}
         selection={selection}
         onSelect={setSelection}
       />
@@ -227,6 +230,9 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
         </button>
         <a className={styles.tool} href="/api/admin/export">
           Export CSV
+        </a>
+        <a className={styles.tool} data-variant="quiet" href="/board/matrix" target="_blank">
+          Project the matrix
         </a>
         <a className={styles.tool} data-variant="quiet" href="/board/live" target="_blank">
           Open board screen
