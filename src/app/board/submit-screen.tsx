@@ -6,9 +6,9 @@ import { BucketSelect } from "@/components/bucket-select";
 import { FunctionCombobox } from "@/components/function-combobox";
 import { Wordmark } from "@/components/wordmark";
 import type { BoardPayload } from "@/lib/board-payload";
-import { BUCKETS, bucketLabel, type BucketKey } from "@/lib/buckets";
+import { BUCKETS, bucketLabel, bucketPrompt, type BucketKey } from "@/lib/buckets";
 import { TASK_MAX_LENGTH, TASK_MIN_LENGTH } from "@/lib/entries-constants";
-import { FUNCTION_OPTIONS, displayFunctionLabel } from "@/lib/functions";
+import { FUNCTION_OPTIONS, displayFunctionLabel, taskPrompt } from "@/lib/functions";
 import { useLiveBoard } from "@/lib/use-live-board";
 import { submitEntry, type SubmitResult } from "./actions";
 import styles from "./submit.module.css";
@@ -127,6 +127,13 @@ export function SubmitScreen({ initial }: Props) {
 
   const ownSet = useMemo(() => new Set(ownIds), [ownIds]);
   const stream = view.entries ?? [];
+
+  // The two choices above compose into the question asked in the task field,
+  // so the prompt gets more specific the more they have told us.
+  const prompt = useMemo(
+    () => taskPrompt(bucket ? bucketPrompt(bucket) : null, functionLabel),
+    [bucket, functionLabel],
+  );
 
   return (
     <main className={styles.page}>
@@ -266,7 +273,7 @@ export function SubmitScreen({ initial }: Props) {
               className={styles.textarea}
               value={task}
               maxLength={TASK_MAX_LENGTH}
-              placeholder="A few words, and who does it by hand today"
+              placeholder={prompt ?? "A few words, and who does it by hand today"}
               onChange={(event) => {
                 setTask(event.target.value);
                 if (error?.field === "task") setError(null);

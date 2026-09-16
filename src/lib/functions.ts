@@ -57,8 +57,12 @@ const ACRONYMS = new Set([
   "UK",
 ]);
 
-/** Short words that stay lower case mid-phrase. */
-const MINOR_WORDS = new Set(["and", "of", "the", "for", "in", "to", "or", "a", "an"]);
+/**
+ * Sentence case, not title case. Every preloaded option reads "Board and
+ * governance" or "Customer success", so a typed "regulatory affairs" has to
+ * become "Regulatory affairs" and not "Regulatory Affairs", or the custom
+ * entries stand out against the list they sit in.
+ */
 
 function normalizeWhitespace(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -91,8 +95,7 @@ export function displayFunctionLabel(raw: string): string {
         return word.toUpperCase();
       }
       const lower = word.toLowerCase();
-      if (index > 0 && MINOR_WORDS.has(lower)) return lower;
-      return lower.charAt(0).toUpperCase() + lower.slice(1);
+      return index === 0 ? lower.charAt(0).toUpperCase() + lower.slice(1) : lower;
     })
     .join(" ");
 }
@@ -177,4 +180,29 @@ export function suggestFunctionOption(raw: string): string | null {
   }
 
   return bestScore >= FUZZY_MATCH_THRESHOLD ? best : null;
+}
+
+/**
+ * The question put to somebody once they have chosen a task type and a
+ * function, used as the placeholder in the task field.
+ *
+ * Built as "In <function>, <prompt>" so it reads correctly for every
+ * combination, including the ones people type themselves. No article is
+ * needed before the function, which is what would otherwise break on
+ * "IT", "HR and people" and "Board and governance" alike.
+ */
+export function taskPrompt(
+  bucketPrompt: string | null,
+  functionLabel: string,
+): string | null {
+  const fn = displayFunctionLabel(functionLabel);
+
+  if (bucketPrompt && fn) return `In ${fn}, ${bucketPrompt}`;
+  if (bucketPrompt) return capitalizeFirst(bucketPrompt);
+  if (fn) return `In ${fn}, what takes somebody hours by hand today?`;
+  return null;
+}
+
+function capitalizeFirst(sentence: string): string {
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }

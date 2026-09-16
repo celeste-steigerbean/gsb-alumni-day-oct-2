@@ -361,9 +361,11 @@
   resize: vertical;
 }
 
+/* This placeholder is a question written for the person, not a hint at the
+   format, so it is worth reading. Grey it down and it stops doing its job. */
 .textarea::placeholder {
   color: var(--muted);
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .counter {

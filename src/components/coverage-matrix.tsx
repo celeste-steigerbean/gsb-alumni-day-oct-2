@@ -54,7 +54,43 @@ export function CoverageMatrix({
   notesPerCell = 1,
   rotateMs = 45_000,
 }: Props) {
-  const projecting = variant === "projection";
+  // The dashboard panel can blow itself up to fill the screen. It then behaves
+  // exactly like the projected route, rotation included, so there is one
+  // implementation of the projected grid rather than two that drift.
+  const [expanded, setExpanded] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+  const projecting = variant === "projection" || expanded;
+
+  async function toggleExpanded() {
+    const next = !expanded;
+    setExpanded(next);
+
+    // The panel covers the viewport on its own, so this only adds the win of
+    // hiding the browser chrome. A refusal is not worth surfacing.
+    try {
+      if (next) await panelRef.current?.requestFullscreen?.();
+      else if (document.fullscreenElement) await document.exitFullscreen();
+    } catch {
+      // Keep the expanded layout regardless.
+    }
+  }
+
+  // Leaving fullscreen by Escape or the browser's own control has to bring the
+  // panel back with it, or the page is stuck covered.
+  useEffect(() => {
+    const onChange = () => {
+      if (!document.fullscreenElement) setExpanded(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   const { functions, byCell, rowTotals, colTotals, filled, cells } = useMemo(() => {
     const byCell = new Map<string, MatrixEntry[]>();
@@ -138,7 +174,7 @@ export function CoverageMatrix({
 
   if (functions.length === 0) {
     return (
-      <section className={styles.panel} data-variant={variant}>
+      <section className={styles.panel} data-variant={variant} data-layout={variant}>
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
         <p className={styles.empty}>
           {projecting
@@ -150,14 +186,26 @@ export function CoverageMatrix({
   }
 
   return (
-    <section className={styles.panel} data-variant={variant}>
+    <section
+      ref={panelRef}
+      className={styles.panel}
+      data-variant={variant}
+      data-layout={projecting ? "projection" : "dashboard"}
+    >
       <header className={styles.head}>
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
-        {projecting && pageCount > 1 ? (
-          <span className={styles.pager}>
-            {`${(tick % pageCount) + 1} of ${pageCount}`}
-          </span>
-        ) : null}
+        <span className={styles.headTools}>
+          {projecting && pageCount > 1 ? (
+            <span className={styles.pager}>
+              {`${(tick % pageCount) + 1} of ${pageCount}`}
+            </span>
+          ) : null}
+          {variant === "dashboard" ? (
+            <button type="button" className={styles.expand} onClick={toggleExpanded}>
+              {expanded ? "Exit full screen" : "Full screen"}
+            </button>
+          ) : null}
+        </span>
       </header>
 
       <div className={styles.scroll}>

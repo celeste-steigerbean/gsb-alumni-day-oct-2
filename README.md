@@ -160,7 +160,10 @@ The code is `GSB26` out of the box. Set `ROOM_PASSCODE` to change it, or to
 One page, phone first, nothing to install.
 
 1. Scan the QR. No typing, no account, no email
-2. Pick a task type from a dropdown, pick a function from a dropdown, write a few words
+2. Pick a task type from a dropdown, pick a function from a dropdown, write a few words.
+   The task field asks them a question built from those two choices, so
+   RECONCILE plus Finance reads "In Finance, which two versions disagree, and
+   who finds where?"
 3. Repeat until three are in
 4. Then a **Show the whole board** button appears. It opens the full board and
    keeps filling as other people submit, with each new card animating in
@@ -224,6 +227,9 @@ exists to earn.
 Row and column labels are filters, each carrying its own count. Clicking one
 narrows the table underneath, and a chip above the table clears it.
 
+The six task types are frozen to the left edge, so sliding the grid sideways
+never leaves you looking at unlabelled rows.
+
 Examples carry a dashed edge and quieter text, so a prop never reads as
 somebody's answer.
 
@@ -269,7 +275,12 @@ stay in the database and in the CSV.
 
 ## Projecting the matrix
 
-`/board/matrix` is the slide, live. Full bleed, no cursor, no chrome, so you
+Two ways in. On the dashboard the matrix panel carries a **Full screen**
+button: it fills the viewport, switches to the projected layout and starts
+rotating, and **Exit full screen** or Escape brings it back. Use that when you
+are presenting off the same laptop screen you are working on.
+
+`/board/matrix` is the same grid as its own page, for a second screen. Full bleed, no cursor, no chrome, so you
 open it on the projected screen and press full screen in the browser. It sits
 behind the same room code as everything else, so the QR link pattern works:
 `/board/matrix?code=GSB26`.
