@@ -61,9 +61,14 @@ export function CoverageMatrix({
   const panelRef = useRef<HTMLElement>(null);
   const projecting = variant === "projection" || expanded;
 
-  async function toggleExpanded() {
+  async function toggleExpanded(event: React.MouseEvent<HTMLButtonElement>) {
     const next = !expanded;
     setExpanded(next);
+
+    // The button lives inside the bar that hides itself, and a focused button
+    // holds that bar open through :focus-within. Drop focus on a click so the
+    // chrome actually goes away; tabbing to it still reveals the bar.
+    if (event.detail > 0) event.currentTarget.blur();
 
     // The panel covers the viewport on its own, so this only adds the win of
     // hiding the browser chrome. A refusal is not worth surfacing.
@@ -192,6 +197,8 @@ export function CoverageMatrix({
       data-variant={variant}
       data-layout={projecting ? "projection" : "dashboard"}
     >
+      {projecting ? <div className={styles.topZone} aria-hidden="true" /> : null}
+
       <header className={styles.head}>
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
         <span className={styles.headTools}>
@@ -312,9 +319,11 @@ export function CoverageMatrix({
         </table>
       </div>
 
-      <p className={styles.caption}>
-        {`${filled} of ${cells} cells filled. Nobody has looked at the rest.`}
-      </p>
+      {projecting ? null : (
+        <p className={styles.caption}>
+          {`${filled} of ${cells} cells filled. Nobody has looked at the rest.`}
+        </p>
+      )}
 
       {projecting && rotateMs > 0 ? (
         // Restarts with each turn, so the room can see the next one coming.

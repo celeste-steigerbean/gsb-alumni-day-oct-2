@@ -285,8 +285,13 @@ open it on the projected screen and press full screen in the browser. It sits
 behind the same room code as everything else, so the QR link pattern works:
 `/board/matrix?code=GSB26`.
 
+Nothing is on screen but the grid. The title and the way back out are hidden
+until you move the pointer to the top edge, where they slide down and stay
+while you are up there. The cell count line is dropped too: it reads well on a
+laptop and is chatter on a wall. Both are still on the dashboard.
+
 Six task types always fill the height, whatever is in them. A crowded cell
-clamps its answer to three lines rather than stealing the row, because losing
+clamps its answer to four lines rather than stealing the row, because losing
 the last three task types off the bottom of the screen loses the one structure
 the exercise is built on.
 
