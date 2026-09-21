@@ -1,15 +1,22 @@
 .link {
-  /* The global anchor rule paints links gold with a rule under them. The
-     wordmark is a mark, not a link in running text, so it keeps its own
-     colour and shows intent on interaction instead. */
-  color: var(--ivory);
-  border-bottom: 0;
+  /* The global anchor rule underlines links in running text. The wordmark is
+     a mark, not a link in a sentence, so it keeps its own colour and shows
+     intent on interaction instead. It inherits --ink, so it is burgundy on
+     paper and ivory on the projected screens without knowing which it is on. */
+  color: var(--ink);
   text-decoration: none;
+  border-bottom: 0;
   display: inline-block;
+  /* A mark is still a tap target. */
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
   transition: opacity 160ms linear;
 }
 
 .link:hover,
 .link:focus-visible {
   opacity: 0.72;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }

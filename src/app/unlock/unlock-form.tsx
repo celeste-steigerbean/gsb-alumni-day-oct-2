@@ -60,7 +60,12 @@ export function UnlockForm({ next }: { next: string }) {
         <button type="submit" className={styles.button} disabled={pending || !code.trim()}>
           {pending ? "Checking" : "Go in"}
         </button>
-        {message ? <p className={styles.error}>{message}</p> : null}
+        {message ? (
+          <p className={styles.error} role="alert">
+            <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+            <span>{message}</span>
+          </p>
+        ) : null}
       </form>
 
       <p className={styles.footnote}>

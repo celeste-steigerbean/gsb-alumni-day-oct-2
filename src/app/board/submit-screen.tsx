@@ -139,9 +139,9 @@ export function SubmitScreen({ initial }: Props) {
     <main className={styles.page}>
       <header className={styles.head}>
         <Wordmark className={styles.mark} />
-        <span className={styles.proofLabel}>
-          Live
-          <span className={styles.liveDot} data-status={status} aria-hidden="true" />
+        <span className={styles.live} data-status={status}>
+          <span className={styles.liveDot} aria-hidden="true" />
+          {status === "stalled" ? "Reconnecting" : "Live"}
         </span>
       </header>
 
@@ -183,8 +183,11 @@ export function SubmitScreen({ initial }: Props) {
                 data-filled={entry ? "true" : "false"}
                 data-next={!entry && index === submitted ? "true" : "false"}
               >
-                <span className={styles.slotMark} aria-hidden="true">
-                  {entry ? "✓" : index + 1}
+                <span className={styles.slotMark}>
+                  <span aria-hidden="true">{entry ? "\u2713" : index + 1}</span>
+                  <span className="visually-hidden">
+                    {entry ? `Task ${index + 1}, added` : `Task ${index + 1}, not added yet`}
+                  </span>
                 </span>
                 {entry ? (
                   <span className={styles.slotBody}>
@@ -207,7 +210,7 @@ export function SubmitScreen({ initial }: Props) {
       </section>
 
       {liveError && status === "stalled" ? (
-        <p className={styles.offline}>
+        <p className={styles.offline} role="status">
           Not connected to the board right now. Your phone keeps trying, so leave this open.
         </p>
       ) : null}
@@ -217,7 +220,7 @@ export function SubmitScreen({ initial }: Props) {
       {composing ? (
         <form onSubmit={handleSubmit} noValidate>
           {justAdded && !unlocked ? (
-            <p className={styles.added}>
+            <p className={styles.added} role="status">
               {remaining === 1
                 ? `That is ${numberWord(submitted)}. One more and the whole board opens.`
                 : `That is ${numberWord(submitted)}. ${capitalize(numberWord(remaining))} more to go.`}
@@ -225,7 +228,7 @@ export function SubmitScreen({ initial }: Props) {
           ) : null}
 
           <button type="button" className={styles.shuffle} onClick={shuffle}>
-            Stuck? Shuffle a starting point
+            Stuck? Fill these in for me
           </button>
 
           <section className={styles.step}>
@@ -241,7 +244,12 @@ export function SubmitScreen({ initial }: Props) {
               }}
               invalid={error?.field === "bucket"}
             />
-            {error?.field === "bucket" ? <p className={styles.error}>{error.message}</p> : null}
+            {error?.field === "bucket" ? (
+              <p className={styles.error} role="alert" id="err-bucket">
+                <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+                <span>{error.message}</span>
+              </p>
+            ) : null}
           </section>
 
           <section className={styles.step}>
@@ -257,7 +265,12 @@ export function SubmitScreen({ initial }: Props) {
               }}
               invalid={error?.field === "function"}
             />
-            {error?.field === "function" ? <p className={styles.error}>{error.message}</p> : null}
+            {error?.field === "function" ? (
+              <p className={styles.error} role="alert" id="err-function">
+                <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+                <span>{error.message}</span>
+              </p>
+            ) : null}
           </section>
 
           <section className={styles.step}>
@@ -265,31 +278,46 @@ export function SubmitScreen({ initial }: Props) {
               <span className={styles.stepNumber}>3</span>
               <h2 className={styles.stepLabel}>The task</h2>
             </div>
+            {/* The question the two choices above compose into. It was the
+                textarea's placeholder, which is the wrong place for anything
+                worth reading: it disappears on the first keystroke. */}
+            <p className={styles.prompt} id="task-prompt">
+              {prompt ?? "What takes somebody hours by hand today?"}
+            </p>
             <label className="visually-hidden" htmlFor="task">
-              Describe the task
+              Your answer
             </label>
             <textarea
               id="task"
               className={styles.textarea}
               value={task}
               maxLength={TASK_MAX_LENGTH}
-              placeholder={prompt ?? "A few words, and who does it by hand today"}
+              aria-describedby={
+                error?.field === "task" ? "task-prompt err-task" : "task-prompt task-count"
+              }
+              aria-invalid={error?.field === "task" || undefined}
+              placeholder="A few words is plenty"
               onChange={(event) => {
                 setTask(event.target.value);
                 if (error?.field === "task") setError(null);
               }}
             />
-            <div className={styles.counter} data-over={taskLength > TASK_MAX_LENGTH}>
-              <span>
+            <div className={styles.counter} id="task-count">
+              <span className={taskLength >= TASK_MIN_LENGTH ? styles.counterReady : undefined}>
                 {taskLength < TASK_MIN_LENGTH
                   ? `${TASK_MIN_LENGTH - taskLength} more characters`
-                  : "Ready"}
+                  : "Long enough"}
               </span>
               <span>
-                {taskLength} / {TASK_MAX_LENGTH}
+                {taskLength} of {TASK_MAX_LENGTH}
               </span>
             </div>
-            {error?.field === "task" ? <p className={styles.error}>{error.message}</p> : null}
+            {error?.field === "task" ? (
+              <p className={styles.error} role="alert" id="err-task">
+                <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+                <span>{error.message}</span>
+              </p>
+            ) : null}
           </section>
 
           <button type="submit" className={styles.submit} disabled={!canSubmit}>
@@ -300,7 +328,12 @@ export function SubmitScreen({ initial }: Props) {
                 : `Add task ${Math.min(submitted + 1, required)} of ${required}`}
           </button>
 
-          {error?.field === "form" ? <p className={styles.error}>{error.message}</p> : null}
+          {error?.field === "form" ? (
+              <p className={styles.error} role="alert" id="err-form">
+                <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+                <span>{error.message}</span>
+              </p>
+            ) : null}
 
           <p className={styles.footnote}>
             No name, no account, no email. The board shows the function and the task only.

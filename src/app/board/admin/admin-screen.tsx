@@ -145,214 +145,216 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
     .join(" / ");
 
   return (
-    <main className={styles.page}>
-      <header className={styles.head}>
-        <Wordmark className={styles.mark} />
-        <span className={styles.headRight}>
-          <span className={styles.liveDot} data-stale={stale ? "true" : "false"} aria-hidden="true" />
+    <div className={styles.shell} data-surface="dark">
+      <main className={styles.page}>
+        <header className={styles.head}>
+          <Wordmark className={styles.mark} />
+          <span className={styles.headRight}>
+            <span className={styles.liveDot} data-stale={stale ? "true" : "false"} aria-hidden="true" />
+            <button
+              type="button"
+              className={styles.tool}
+              data-variant="quiet"
+              onClick={() =>
+                startTransition(async () => {
+                  await signOut();
+                  router.refresh();
+                })
+              }
+            >
+              Sign out
+            </button>
+          </span>
+        </header>
+
+        <h1 className={styles.title}>Session dashboard</h1>
+        <p className={styles.lede}>
+          Every answer the room has given, live. Hiding an entry takes it off the projected board
+          within about two seconds and nothing is ever deleted.
+        </p>
+
+        <section className={styles.tiles} aria-label="Summary">
+          <div className={styles.tile}>
+            <span className={styles.tileValue}>{stats.visible}</span>
+            <span className={styles.tileLabel}>On the board</span>
+            {stats.seeded > 0 ? (
+              <span className={styles.tileNote}>
+  {stats.seeded} of these are examples, {SEED_EXAMPLES.length - stats.seeded} more available
+              </span>
+            ) : null}
+          </div>
+          <div className={styles.tile}>
+            <span className={styles.tileValue}>{stats.people}</span>
+            <span className={styles.tileLabel}>Phones</span>
+            <span className={styles.tileNote}>Distinct people who submitted</span>
+          </div>
+          <div className={styles.tile}>
+            <span className={styles.tileValue}>{stats.functions}</span>
+            <span className={styles.tileLabel}>Functions</span>
+            <span className={styles.tileNote}>Distinct areas represented</span>
+          </div>
+          <div className={styles.tile}>
+            <span className={styles.tileValue} data-quiet={stats.hidden === 0 ? "true" : "false"}>
+              {stats.hidden}
+            </span>
+            <span className={styles.tileLabel}>Hidden</span>
+            <span className={styles.tileNote}>Still in the database and the export</span>
+          </div>
+        </section>
+
+        <CoverageMatrix
+          entries={visible.map((entry) => ({
+            ...entry,
+            isExample: entry.submitter_cookie_id === SEED_COOKIE_ID,
+          }))}
+          selection={selection}
+          onSelect={setSelection}
+        />
+
+        <div className={styles.toolbar}>
+          <button
+            type="button"
+            className={styles.tool}
+            disabled={pending}
+            onClick={() => startTransition(async () => absorb(await seedBoard()))}
+          >
+            Add {SEED_BATCH_SIZE} examples
+          </button>
           <button
             type="button"
             className={styles.tool}
             data-variant="quiet"
-            onClick={() =>
-              startTransition(async () => {
-                await signOut();
-                router.refresh();
-              })
-            }
+            disabled={pending || stats.seeded === 0}
+            onClick={() => startTransition(async () => absorb(await clearSeeds()))}
           >
-            Sign out
+            Remove the examples
           </button>
-        </span>
-      </header>
+          <a className={styles.tool} href="/api/admin/export">
+            Export CSV
+          </a>
+          <a className={styles.tool} data-variant="quiet" href="/board/matrix" target="_blank">
+            Project the matrix
+          </a>
+          <a className={styles.tool} data-variant="quiet" href="/board/live" target="_blank">
+            Open board screen
+          </a>
+        </div>
 
-      <h1 className={styles.title}>Session dashboard</h1>
-      <p className={styles.lede}>
-        Every answer the room has given, live. Hiding an entry takes it off the projected board
-        within about two seconds and nothing is ever deleted.
-      </p>
+        {note ? <p className={styles.note}>{note}</p> : null}
+        {error ? <p className={styles.note}>{error}</p> : null}
 
-      <section className={styles.tiles} aria-label="Summary">
-        <div className={styles.tile}>
-          <span className={styles.tileValue}>{stats.visible}</span>
-          <span className={styles.tileLabel}>On the board</span>
-          {stats.seeded > 0 ? (
-            <span className={styles.tileNote}>
-{stats.seeded} of these are examples, {SEED_EXAMPLES.length - stats.seeded} more available
-            </span>
+        <div className={styles.filters}>
+          <label className="visually-hidden" htmlFor="dash-search">
+            Search answers
+          </label>
+          <input
+            id="dash-search"
+            className={styles.search}
+            type="search"
+            placeholder="Search a task, a function, a task type"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          {selectionLabel ? (
+            <button
+              type="button"
+              className={styles.chip}
+              data-on="true"
+              onClick={() => setSelection({ bucket: null, fn: null })}
+            >
+              {selectionLabel} &times;
+            </button>
           ) : null}
-        </div>
-        <div className={styles.tile}>
-          <span className={styles.tileValue}>{stats.people}</span>
-          <span className={styles.tileLabel}>Phones</span>
-          <span className={styles.tileNote}>Distinct people who submitted</span>
-        </div>
-        <div className={styles.tile}>
-          <span className={styles.tileValue}>{stats.functions}</span>
-          <span className={styles.tileLabel}>Functions</span>
-          <span className={styles.tileNote}>Distinct areas represented</span>
-        </div>
-        <div className={styles.tile}>
-          <span className={styles.tileValue} data-quiet={stats.hidden === 0 ? "true" : "false"}>
-            {stats.hidden}
-          </span>
-          <span className={styles.tileLabel}>Hidden</span>
-          <span className={styles.tileNote}>Still in the database and the export</span>
-        </div>
-      </section>
-
-      <CoverageMatrix
-        entries={visible.map((entry) => ({
-          ...entry,
-          isExample: entry.submitter_cookie_id === SEED_COOKIE_ID,
-        }))}
-        selection={selection}
-        onSelect={setSelection}
-      />
-
-      <div className={styles.toolbar}>
-        <button
-          type="button"
-          className={styles.tool}
-          disabled={pending}
-          onClick={() => startTransition(async () => absorb(await seedBoard()))}
-        >
-          Add {SEED_BATCH_SIZE} examples
-        </button>
-        <button
-          type="button"
-          className={styles.tool}
-          data-variant="quiet"
-          disabled={pending || stats.seeded === 0}
-          onClick={() => startTransition(async () => absorb(await clearSeeds()))}
-        >
-          Remove the examples
-        </button>
-        <a className={styles.tool} href="/api/admin/export">
-          Export CSV
-        </a>
-        <a className={styles.tool} data-variant="quiet" href="/board/matrix" target="_blank">
-          Project the matrix
-        </a>
-        <a className={styles.tool} data-variant="quiet" href="/board/live" target="_blank">
-          Open board screen
-        </a>
-      </div>
-
-      {note ? <p className={styles.note}>{note}</p> : null}
-      {error ? <p className={styles.note}>{error}</p> : null}
-
-      <div className={styles.filters}>
-        <label className="visually-hidden" htmlFor="dash-search">
-          Search answers
-        </label>
-        <input
-          id="dash-search"
-          className={styles.search}
-          type="search"
-          placeholder="Search a task, a function, a task type"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        {selectionLabel ? (
           <button
             type="button"
             className={styles.chip}
-            data-on="true"
-            onClick={() => setSelection({ bucket: null, fn: null })}
+            data-on={showHidden ? "true" : "false"}
+            onClick={() => setShowHidden((current) => !current)}
           >
-            {selectionLabel} &times;
+            {showHidden ? "Hidden shown" : "Hidden out"}
           </button>
-        ) : null}
-        <button
-          type="button"
-          className={styles.chip}
-          data-on={showHidden ? "true" : "false"}
-          onClick={() => setShowHidden((current) => !current)}
-        >
-          {showHidden ? "Hidden shown" : "Hidden out"}
-        </button>
-      </div>
-
-      <p className={styles.resultLine}>
-        {filtered.length} {filtered.length === 1 ? "answer" : "answers"}
-        {filtersActive ? ` of ${entries.length}` : ""}
-      </p>
-
-      {filtered.length === 0 ? (
-        <p className={styles.empty}>
-          {entries.length === 0 ? "Nothing submitted yet." : "Nothing matches those filters."}
-        </p>
-      ) : (
-        /* Grouped by the six task types, in the order the session teaches
-           them, so the table reads the same way the slide does. */
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col" className={styles.colFunction}>Function</th>
-                <th scope="col" className={styles.colTask}>The task</th>
-                <th scope="col" className={styles.colTime}>Time</th>
-                <th scope="col" className={styles.colAction}>
-                  <span className="visually-hidden">Show or hide</span>
-                </th>
-              </tr>
-            </thead>
-
-            {BUCKETS.map((definition) => {
-              const rows = filtered.filter((entry) => entry.bucket === definition.key);
-              if (rows.length === 0) return null;
-              return (
-                <tbody key={definition.key}>
-                  <tr className={styles.groupRow}>
-                    <th scope="colgroup" colSpan={4}>
-                      <span className={styles.groupName}>{definition.label}</span>
-                      <span className={styles.groupHelper}>{definition.helper}</span>
-                      <span className={styles.groupCount}>{rows.length}</span>
-                    </th>
-                  </tr>
-
-                  {rows.map((entry) => (
-                    <tr key={entry.id} data-hidden={entry.hidden ? "true" : "false"}>
-                      <td className={styles.colFunction}>
-                        {displayFunctionLabel(entry.function_label)}
-                        {entry.submitter_cookie_id === SEED_COOKIE_ID ? (
-                          <span className={styles.rowTag}> Example</span>
-                        ) : null}
-                      </td>
-                      <td className={styles.colTask}>{entry.task}</td>
-                      <td className={styles.colTime}>{timeOnly(entry.created_at)}</td>
-                      <td className={styles.colAction}>
-                        <button
-                          type="button"
-                          className={styles.toggle}
-                          data-hidden={entry.hidden ? "true" : "false"}
-                          disabled={busyId === entry.id}
-                          onClick={() => {
-                            setBusyId(entry.id);
-                            // Optimistic, so the click feels instant on stage.
-                            setEntries((current) =>
-                              current.map((row) =>
-                                row.id === entry.id ? { ...row, hidden: !row.hidden } : row,
-                              ),
-                            );
-                            startTransition(async () => {
-                              absorb(await toggleHidden(entry.id, !entry.hidden));
-                              setBusyId(null);
-                            });
-                          }}
-                        >
-                          {entry.hidden ? "Show" : "Hide"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              );
-            })}
-          </table>
         </div>
-      )}
-    </main>
+
+        <p className={styles.resultLine}>
+          {filtered.length} {filtered.length === 1 ? "answer" : "answers"}
+          {filtersActive ? ` of ${entries.length}` : ""}
+        </p>
+
+        {filtered.length === 0 ? (
+          <p className={styles.empty}>
+            {entries.length === 0 ? "Nothing submitted yet." : "Nothing matches those filters."}
+          </p>
+        ) : (
+          /* Grouped by the six task types, in the order the session teaches
+             them, so the table reads the same way the slide does. */
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col" className={styles.colFunction}>Function</th>
+                  <th scope="col" className={styles.colTask}>The task</th>
+                  <th scope="col" className={styles.colTime}>Time</th>
+                  <th scope="col" className={styles.colAction}>
+                    <span className="visually-hidden">Show or hide</span>
+                  </th>
+                </tr>
+              </thead>
+
+              {BUCKETS.map((definition) => {
+                const rows = filtered.filter((entry) => entry.bucket === definition.key);
+                if (rows.length === 0) return null;
+                return (
+                  <tbody key={definition.key}>
+                    <tr className={styles.groupRow}>
+                      <th scope="colgroup" colSpan={4}>
+                        <span className={styles.groupName}>{definition.label}</span>
+                        <span className={styles.groupHelper}>{definition.helper}</span>
+                        <span className={styles.groupCount}>{rows.length}</span>
+                      </th>
+                    </tr>
+
+                    {rows.map((entry) => (
+                      <tr key={entry.id} data-hidden={entry.hidden ? "true" : "false"}>
+                        <td className={styles.colFunction}>
+                          {displayFunctionLabel(entry.function_label)}
+                          {entry.submitter_cookie_id === SEED_COOKIE_ID ? (
+                            <span className={styles.rowTag}> Example</span>
+                          ) : null}
+                        </td>
+                        <td className={styles.colTask}>{entry.task}</td>
+                        <td className={styles.colTime}>{timeOnly(entry.created_at)}</td>
+                        <td className={styles.colAction}>
+                          <button
+                            type="button"
+                            className={styles.toggle}
+                            data-hidden={entry.hidden ? "true" : "false"}
+                            disabled={busyId === entry.id}
+                            onClick={() => {
+                              setBusyId(entry.id);
+                              // Optimistic, so the click feels instant on stage.
+                              setEntries((current) =>
+                                current.map((row) =>
+                                  row.id === entry.id ? { ...row, hidden: !row.hidden } : row,
+                                ),
+                              );
+                              startTransition(async () => {
+                                absorb(await toggleHidden(entry.id, !entry.hidden));
+                                setBusyId(null);
+                              });
+                            }}
+                          >
+                            {entry.hidden ? "Show" : "Hide"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                );
+              })}
+            </table>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }

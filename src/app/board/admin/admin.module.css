@@ -1,3 +1,12 @@
+/* The room reads paper. The dashboard and the projector keep the dark ground,
+   so they paint it themselves rather than inheriting the body. */
+
+.shell {
+  background: var(--midnight);
+  color: var(--ivory);
+  min-height: 100dvh;
+}
+
 /* Session dashboard. Desktop first: this is the laptop screen, not a phone.
    It still reflows down to a narrow width, it is just not optimised for it. */
 
@@ -349,9 +358,10 @@ a.tool[data-variant="quiet"] {
 /* Gate ------------------------------------------------------------------- */
 
 .gate {
+  min-height: 100dvh;
   max-width: 400px;
-  margin: 16vh auto 0;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 16vh 20px 0;
 }
 
 .gateTitle {

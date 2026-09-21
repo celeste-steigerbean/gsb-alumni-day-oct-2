@@ -1,144 +1,146 @@
-/* Submit screen. Phone first. Nothing below 14px. */
+/* The submit screen. A phone, in a lit room, held by someone who may be
+   seventy and reading without their glasses.
+ *
+ * Rules this file keeps:
+ *   - Nothing under 1rem, and every size is a rem so the phone's own text
+ *     setting actually does something.
+ *   - Body weight 400, labels 600. No hairline weights anywhere.
+ *   - Every tap target is at least 3.5rem tall with 0.75rem of air around it.
+ *   - Uppercase only for eyebrow labels of three words or fewer. Capitals
+ *     strip the word-shape a slower reader is leaning on, so sentences and
+ *     buttons stay in sentence case.
+ *   - Colour never carries a meaning on its own. Every state that is gold is
+ *     also a border weight, a fill, or a word.
+ */
 
 .page {
   min-height: 100dvh;
-  padding: 28px 20px 72px;
-  max-width: 620px;
+  padding: 1.5rem 1.25rem 5rem;
+  /* ~62 characters at this size. Past that the eye loses the line return. */
+  max-width: 34rem;
   margin: 0 auto;
 }
 
 .head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
 }
 
 .mark {
-  font-size: 15px;
-  letter-spacing: 0.24em;
+  font-size: var(--t-min);
+  letter-spacing: 0.16em;
+}
+
+/* Live status. The dot is decoration; the word carries the meaning. */
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--t-min);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+  white-space: nowrap;
 }
 
 .liveDot {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 50%;
-  background: var(--gold);
-  margin-left: 8px;
-  vertical-align: middle;
+  background: var(--accent-ink);
   transition: opacity 240ms linear;
 }
 
-.liveDot[data-status="stalled"] {
-  opacity: 0.25;
+.live[data-status="stalled"] {
+  color: var(--ink-soft);
+}
+
+.live[data-status="stalled"] .liveDot {
+  background: var(--ink-soft);
+  opacity: 0.5;
 }
 
 .title {
   font-family: var(--serif);
-  font-weight: 300;
-  font-size: 34px;
-  line-height: 1.15;
-  margin: 26px 0 10px;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  font-size: clamp(2rem, 8vw, var(--t-2xl));
+  line-height: 1.2;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--ink);
 }
 
 .lede {
-  font-size: 16px;
-  color: var(--muted);
-  margin: 0 0 26px;
-  line-height: 1.75;
+  font-size: var(--t-md);
+  color: var(--ink);
+  margin: 0 0 1.75rem;
+  line-height: 1.6;
 }
 
 /* Proof strip ------------------------------------------------------------ */
 
 .proof {
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--line-soft);
+  border-left: 4px solid var(--accent);
   border-radius: var(--radius);
-  background: var(--panel-inset);
-  padding: 20px 18px;
-  margin-bottom: 34px;
+  background: var(--surface-sunk);
+  padding: 1.25rem 1.125rem;
+  margin-bottom: 1.75rem;
 }
 
 .proofHead {
   display: flex;
   align-items: baseline;
-  gap: 14px;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .proofCount {
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
   font-family: var(--serif);
-  font-weight: 300;
-  font-size: 46px;
+  font-weight: 600;
+  font-size: 3rem;
   line-height: 1;
-  color: var(--ivory);
+  color: var(--ink);
 }
 
 .proofLabel {
-  font-size: 14px;
+  font-size: var(--t-min);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
   line-height: 1.4;
 }
 
 .proofNote {
-  margin: 14px 0 0;
-  padding: 14px 0 0;
-  border-top: 1px solid var(--hairline);
-  font-size: 15px;
+  margin: 0.875rem 0 0;
+  padding: 0.875rem 0 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: var(--t-sm);
   line-height: 1.6;
-  color: var(--muted);
-}
-
-.proofList {
-  list-style: none;
-  margin: 18px 0 0;
-  padding: 18px 0 0;
-  border-top: 1px solid var(--hairline);
-  display: grid;
-  gap: 14px;
-}
-
-.proofItem {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.proofItem .proofFunction {
-  display: block;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--gold);
-  margin-bottom: 3px;
-}
-
-.proofEmpty {
-  margin: 16px 0 0;
-  font-size: 15px;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 /* The three slots --------------------------------------------------------- */
 
 .slots {
-  margin-bottom: 30px;
-  padding: 18px 18px 20px;
-  background: var(--panel-inset);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
+  margin-bottom: 1.75rem;
 }
 
 .slotsTitle {
-  font-size: 14px;
+  font-size: var(--t-min);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  margin: 0 0 14px;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+  margin: 0 0 0.75rem;
 }
 
 .slotList {
@@ -146,437 +148,382 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
-  counter-reset: none;
+  gap: 0.625rem;
 }
 
 .slot {
   display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 12px;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0.875rem;
   align-items: start;
-  padding: 11px 12px;
-  border: 1px solid transparent;
+  min-height: 3.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius);
-  background: transparent;
+  background: var(--page);
 }
 
+/* Done: filled marker, solid edge, a tick and the word "Done" for a reader
+   who gets no colour at all. */
 .slot[data-filled="true"] {
-  background: var(--panel);
-  border-color: rgba(201, 169, 110, 0.22);
+  background: var(--surface);
+  border-color: var(--line);
 }
 
+/* Next up: a heavier left edge, not just a different hue. */
 .slot[data-next="true"] {
-  border-color: var(--hairline-strong);
-  border-style: dashed;
+  border-color: var(--line);
+  border-left: 4px solid var(--accent);
+  background: var(--surface);
 }
 
 .slotMark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
-  border: 1px solid var(--hairline);
-  font-size: 15px;
+  border: 2px solid var(--line-soft);
+  font-size: var(--t-base);
+  font-weight: 600;
   line-height: 1;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .slot[data-filled="true"] .slotMark {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--midnight);
+  background: var(--accent);
+  border-color: var(--on-accent);
+  color: var(--on-accent);
 }
 
 .slot[data-next="true"] .slotMark {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .slotBody {
   display: grid;
-  gap: 4px;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .slotMeta {
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--gold);
-  line-height: 1.35;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--accent-ink);
+  line-height: 1.4;
 }
 
 .slotTask {
-  font-size: 15px;
+  font-size: var(--t-sm);
   line-height: 1.55;
-  color: var(--ivory);
+  color: var(--ink);
   overflow-wrap: break-word;
 }
 
 .slotEmpty {
-  font-size: 15px;
-  line-height: 1.9;
-  color: var(--muted);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  align-self: center;
 }
 
 .slot[data-next="true"] .slotEmpty {
-  color: var(--ivory);
+  color: var(--ink);
+  font-weight: 500;
 }
 
+/* Messages --------------------------------------------------------------- */
+
 .added {
-  margin: 0 0 18px;
-  padding: 13px 16px;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ivory);
-  background: var(--panel);
-  border: 1px solid rgba(201, 169, 110, 0.2);
-  border-left: 2px solid var(--gold);
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.125rem;
+  font-size: var(--t-md);
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
   border-radius: var(--radius);
 }
 
 .offline {
-  margin: 0 0 22px;
-  padding: 14px 16px;
-  font-size: 15px;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.125rem;
+  font-size: var(--t-sm);
   line-height: 1.6;
-  color: var(--ivory);
-  background: var(--panel-inset);
-  border: 1px solid var(--hairline-strong);
-  border-left: 2px solid var(--gold);
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
-}
-
-.shuffle {
-  display: block;
-  width: 100%;
-  min-height: 52px;
-  margin-bottom: 30px;
-  padding: 14px 18px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--muted);
-  background: transparent;
-  border: 1px dashed var(--hairline-strong);
-  border-radius: var(--radius);
-}
-
-.shuffle:hover,
-.shuffle:focus-visible {
-  color: var(--gold);
-  border-style: solid;
 }
 
 /* Form ------------------------------------------------------------------- */
 
+.shuffle {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  margin-bottom: 2rem;
+  padding: 1rem 1.125rem;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--page);
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.shuffle:hover {
+  background: var(--surface-sunk);
+  border-style: solid;
+}
+
 .step {
-  margin-bottom: 34px;
+  margin-bottom: 2rem;
 }
 
 .stepHead {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
+/* The step number is a filled coin, not a thin glyph. It is the one piece of
+   wayfinding on the page. */
 .stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
   font-family: var(--serif);
-  font-size: 22px;
+  font-weight: 600;
+  font-size: var(--t-md);
   line-height: 1;
-  color: var(--gold);
   font-variant-numeric: lining-nums;
   font-feature-settings: "lnum" 1;
 }
 
 .stepLabel {
-  font-size: 14px;
+  font-size: var(--t-min);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
 }
 
-.buckets {
-  display: grid;
-  gap: 10px;
-}
-
-.bucket {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 16px 18px;
-  min-height: 76px;
-  background: var(--panel-inset);
-  border: 1px solid var(--hairline);
-  border-left: 2px solid transparent;
-  border-radius: var(--radius);
-}
-
-.bucket[data-selected="true"] {
-  background: var(--panel);
-  border-color: var(--hairline-strong);
-  border-left-color: var(--gold);
-}
-
-.bucketName {
-  display: block;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--muted);
-  line-height: 1.3;
-}
-
-.bucket[data-selected="true"] .bucketName {
-  color: var(--gold);
-}
-
-.bucketHelper {
-  display: block;
-  margin-top: 6px;
-  font-size: 15px;
+/* The question the two choices above compose into. It used to live in the
+   textarea's placeholder, where it vanished the moment anybody typed and sat
+   at placeholder contrast while it lasted. It is real text now. */
+.prompt {
+  margin: 0 0 0.75rem;
+  padding: 0.875rem 1rem;
+  font-size: var(--t-base);
   line-height: 1.55;
-  color: var(--muted);
-}
-
-.bucket[data-selected="true"] .bucketHelper {
-  color: var(--ivory);
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
 }
 
 .textarea {
+  display: block;
   width: 100%;
-  min-height: 130px;
-  padding: 15px 18px;
-  font-size: 17px;
-  line-height: 1.6;
-  background: var(--panel-inset);
-  border: 1px solid var(--hairline);
+  min-height: 8.5rem;
+  padding: 0.875rem 1rem;
+  font-size: var(--t-base);
+  line-height: 1.55;
+  background: var(--surface);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
-  color: var(--ivory);
+  color: var(--ink);
   resize: vertical;
 }
 
-/* This placeholder is a question written for the person, not a hint at the
-   format, so it is worth reading. Grey it down and it stops doing its job. */
 .textarea::placeholder {
-  color: var(--muted);
+  color: var(--ink-soft);
   opacity: 1;
+}
+
+.textarea[aria-invalid="true"] {
+  border-color: var(--ink);
+  border-width: 3px;
 }
 
 .counter {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--muted);
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: var(--t-min);
+  color: var(--ink-soft);
 }
 
-.counter[data-over="true"] {
-  color: var(--gold);
+.counterReady {
+  font-weight: 600;
+  color: var(--accent-ink);
 }
 
+/* An error is a word and a heavy edge, never a colour on its own. */
 .error {
-  margin-top: 10px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--ivory);
-  border-left: 2px solid var(--gold);
-  padding-left: 12px;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
 }
 
+.errorMark {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+/* Buttons ---------------------------------------------------------------- */
+
+/* Burgundy on paper is 16.6:1. The gold fill is 7.9:1 and beautiful, but the
+   gold's own edge against the page is 2.1:1, so a gold button floats with no
+   boundary. Ink fill, ivory type, gold kept for the markers. */
 .submit {
   width: 100%;
-  min-height: 60px;
-  padding: 18px 24px;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  background: var(--gold);
-  color: var(--midnight);
-  border: 1px solid var(--gold);
+  min-height: 3.75rem;
+  padding: 1.125rem 1.5rem;
+  font-size: var(--t-md);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--ink);
+  color: var(--page);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
 }
 
 .submit:disabled {
-  background: transparent;
-  color: var(--muted);
-  border-color: var(--hairline);
+  background: var(--surface-quiet);
+  color: var(--ink-soft);
+  border-color: var(--line);
   cursor: default;
 }
 
 .footnote {
-  margin-top: 18px;
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--muted);
+  margin-top: 1.125rem;
+  font-size: var(--t-min);
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
 /* Post submit ------------------------------------------------------------ */
 
-.thanks {
-  border: 1px solid var(--hairline-strong);
-  border-left: 2px solid var(--gold);
-  border-radius: var(--radius);
-  background: var(--panel);
-  padding: 22px 20px;
-  margin-bottom: 34px;
-}
-
-.thanksTitle {
-  font-family: var(--serif);
-  font-size: 28px;
-  line-height: 1.2;
-  margin: 0 0 8px;
-}
-
-.thanksBody {
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--muted);
-  margin: 0;
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.actionButton {
-  min-height: 52px;
-  padding: 14px 22px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  border: 1px solid var(--gold);
-  border-radius: var(--radius);
-  color: var(--gold);
-  background: transparent;
-}
-
-.groupHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 32px 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.groupName {
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-}
-
-.groupCount {
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: "lnum" 1, "tnum" 1;
-  font-family: var(--serif);
-  font-size: 20px;
-  color: var(--muted);
+  gap: 0.75rem;
+  margin-top: 1.125rem;
 }
 
 .cards {
   display: grid;
-  gap: 10px;
+  gap: 0.75rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .card {
-  padding: 15px 18px;
-  background: var(--panel);
-  border: 1px solid rgba(201, 169, 110, 0.18);
-  border-left: 2px solid transparent;
+  padding: 1rem 1.125rem;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-left: 4px solid var(--line-soft);
   border-radius: var(--radius);
 }
 
+/* "Yours" is spelled out in the card, so this edge is reinforcement. */
 .card[data-own="true"] {
-  border-color: var(--hairline-strong);
-  border-left-color: var(--gold);
-  background: var(--panel);
+  border-color: var(--line);
+  border-left-color: var(--accent);
+  background: var(--surface-sunk);
 }
 
 .cardFunction {
   display: block;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--gold);
-  margin-bottom: 6px;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--accent-ink);
+  margin-bottom: 0.375rem;
+  line-height: 1.4;
 }
 
 .cardTask {
-  font-size: 16px;
-  line-height: 1.65;
-  color: var(--ivory);
+  display: block;
+  font-size: var(--t-base);
+  line-height: 1.6;
+  color: var(--ink);
+  overflow-wrap: break-word;
 }
 
 .ownTag {
-  margin-left: 10px;
-  font-size: 14px;
-  letter-spacing: 0.16em;
-  color: var(--muted);
-  text-transform: uppercase;
-}
-
-.emptyGroup {
-  font-size: 15px;
-  color: var(--muted);
-  padding: 4px 0 0;
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.0625rem 0.5rem;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: var(--radius);
 }
 
 /* Reveal and live stream -------------------------------------------------- */
 
 .reveal {
   display: grid;
-  gap: 10px;
-  margin: 8px 0 26px;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1.75rem;
 }
 
 .revealButton {
   width: 100%;
-  min-height: 60px;
-  padding: 18px 22px;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  background: var(--gold);
-  color: var(--midnight);
-  border: 1px solid var(--gold);
+  min-height: 3.75rem;
+  padding: 1.125rem 1.25rem;
+  font-size: var(--t-md);
+  font-weight: 600;
+  background: var(--ink);
+  color: var(--page);
+  border: 2px solid var(--ink);
   border-radius: var(--radius);
 }
 
 .revealQuiet {
   width: 100%;
-  min-height: 52px;
-  padding: 14px 22px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--muted);
-  background: transparent;
-  border: 1px solid var(--hairline);
+  min-height: var(--tap);
+  padding: 1rem 1.25rem;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--page);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
 }
 
+.revealQuiet:hover {
+  background: var(--surface-sunk);
+}
+
 .streamNote {
-  margin: 0 0 14px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--gold);
+  margin: 0 0 0.875rem;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--accent-ink);
   line-height: 1.5;
 }
 

@@ -7,14 +7,18 @@ import "./globals.css";
 // a fallback face while Google Fonts resolves.
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400"],
+  // 300 is for the projected screens, where type is huge and a hairline is
+  // elegant. The room reads 500: Cormorant's light strokes vanish on a phone.
+  weight: ["300", "400", "500", "600"],
   variable: "--font-cormorant",
   display: "swap",
 });
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["200", "300", "400"],
+  // 200 and 300 stay for the presenter screens only. Nothing the room reads
+  // goes below 400, and labels sit at 600.
+  weight: ["200", "300", "400", "500", "600"],
   variable: "--font-montserrat",
   display: "swap",
 });
@@ -28,8 +32,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
-  themeColor: "#2E0F15",
+  // No zoom ceiling. Capping pinch zoom fails WCAG 1.4.4, and it is the first
+  // thing somebody reaches for when the type is still too small for them.
+  userScalable: true,
+  themeColor: "#FAF8F5",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

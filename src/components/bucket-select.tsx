@@ -63,8 +63,9 @@ export function BucketSelect({ value, onChange, invalid }: Props) {
         className={styles.trigger}
         data-filled={value ? "true" : "false"}
         data-open={open ? "true" : "false"}
-        style={invalid ? { borderColor: "var(--gold)" } : undefined}
+        data-invalid={invalid ? "true" : "false"}
         aria-haspopup="listbox"
+        aria-invalid={invalid || undefined}
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
         onClick={() => {
@@ -100,8 +101,15 @@ export function BucketSelect({ value, onChange, invalid }: Props) {
                   className={`${styles.option} ${styles.optionStack}`}
                   onClick={() => choose(definition.key)}
                 >
-                  <span className={styles.optionName}>{definition.label}</span>
-                  <span className={styles.optionHelper}>{definition.helper}</span>
+                  <span>
+                    <span className={styles.optionName}>{definition.label}</span>
+                    <span className={styles.optionHelper}>{definition.helper}</span>
+                  </span>
+                  {/* Chosen is a tick as well as a shaded row. Somebody who
+                      cannot separate the two backgrounds still sees it. */}
+                  <span className={styles.tick} aria-hidden="true">
+                    {definition.key === value ? "\u2713" : ""}
+                  </span>
                 </button>
               </li>
             ))}

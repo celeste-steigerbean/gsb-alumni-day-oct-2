@@ -420,6 +420,83 @@ next to **Keep financee**. It never silently rewrites what someone wrote.
 
 ---
 
+## Two surfaces, one brand
+
+The screens split by who is reading them, and they are designed against
+different constraints.
+
+**The room reads paper.** `/board` and `/unlock` sit on the brand ivory with
+deep burgundy ink. The audience is older, on their own phones, in a lit hall.
+Light-on-dark is the harder read for an ageing eye: the pupil opens wider, so
+any uncorrected astigmatism smears pale type into its own background. Paper
+avoids that, and it beats screen glare in a bright room.
+
+**The presenter screens keep the dark ground.** `/board/live`,
+`/board/matrix` and `/board/admin` are unchanged — burgundy and champagne, as
+the slide deck is. A projector throws light, so a dark field is right there for
+exactly the reason paper is right on a phone. They opt in with
+`data-surface="dark"`, which re-points the semantic tokens.
+
+### The gold problem
+
+The champagne `#C9A96E` is the constraint the light surface is built around.
+
+| Pairing | Ratio | Verdict |
+| --- | --- | --- |
+| Gold on burgundy `#2E0F15` | 7.85:1 | AAA — carries text on the dark screens |
+| Gold on ivory `#FAF8F5` | **2.11:1** | Fails every WCAG threshold, text and borders alike |
+| Burgundy on gold | 7.85:1 | AAA — so gold can be a *fill* under dark type |
+
+So on the light surface gold is never text and never a control boundary. It is
+a rule, a fill and a marker: the step numbers, the completed-task ticks, the
+accent bar down the side of a panel. Labels move to a deepened bronze of the
+same family, `#60441A`, which is AAA.
+
+### The light palette
+
+Every value clears 7:1 (WCAG AAA) against the *darkest* light surface it can
+land on, not just against the page, so a label keeps its rating wherever it is
+set down.
+
+| Token | Value | Role |
+| --- | --- | --- |
+| `--page` | `#FAF8F5` | Brand ivory. Warm paper, not white |
+| `--surface` | `#FFFFFF` | A field you type into |
+| `--surface-sunk` | `#F2ECE5` | A panel set into the page |
+| `--ink` | `#2E0F15` | Body copy — 16.6:1 |
+| `--ink-soft` | `#683E3A` | Secondary — 7.2:1 worst case |
+| `--accent-ink` | `#60441A` | The deepened gold, for labels — 7.2:1 worst case |
+| `--accent` | `#C9A96E` | Fills, rules and markers only |
+| `--line` | `#8A6A46` | A real control boundary — 4.7:1, clears WCAG 1.4.11 |
+
+### What else changed for legibility
+
+- **Nothing under 16px**, and every size is a `rem`, so a phone set to large
+  text actually gets large text.
+- **Body weight 400, labels 600.** Montserrat Light was a hairline at phone
+  sizes and was the single biggest legibility cost in the first build.
+- **Uppercase only for eyebrow labels of three words or fewer.** Capitals strip
+  the word-shape a slower reader leans on, so sentences and buttons are in
+  sentence case now. The six task names stay in capitals — they are the
+  session's vocabulary and they match the slide — but at 18px/600 rather than
+  14px/300 with 0.2em of tracking.
+- **Tracking cut** from 0.2em to 0.08em on labels, and from 0.04em to 0.01em on
+  body. Montserrat is already a wide face; tracking on top pushes letters out
+  of their words.
+- **Every tap target is 3.5rem or taller**, above both the Apple 44px and the
+  Material 48px floors, with 0.75rem of air around it.
+- **Pinch zoom is uncapped.** The old `maximumScale: 5` fails WCAG 1.4.4 and it
+  is the first thing somebody reaches for when type is still too small.
+- **The composed question moved out of the placeholder** and into real text
+  above the field. A placeholder disappears on the first keystroke, which is
+  the wrong home for the one line that helps people think.
+- **No state is told by colour alone.** Selection is a tick and a weight change,
+  errors are a warning glyph plus a heavier border and are announced with
+  `role="alert"`, and the live indicator is a word as well as a dot.
+- **`prefers-contrast: more` and `prefers-reduced-motion` are both honoured.**
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -462,3 +539,17 @@ Exercised in a real browser against a real Postgres:
 - Seeding twice does not duplicate the examples
 - Dashboard search, task-type chips and the hidden toggle each narrow the list
   correctly, and the page has no horizontal overflow down to 430px
+
+Re-verified after the accessibility pass, in Chromium at 375x667 and 390x844,
+auditing every rendered text node against its real computed background:
+
+- **Zero** contrast failures at WCAG AA, and zero at AAA, on `/unlock`, on
+  `/board`, with the pickers open, and on the revealed board
+- **Zero** text under 16px and **zero** tap targets under 44px on any of them
+- Tab reaches every control in order and each one shows a 3px focus ring
+- The pickers open on Enter and choose on Arrow plus Enter
+- The composed question is grammatical with neither choice made, with the task
+  type alone, and with both
+- Three submissions fill the three slots and unlock the board
+- `/board/live`, `/board/matrix` and `/board/admin` still render on the dark
+  ground, unchanged

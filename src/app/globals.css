@@ -1,20 +1,103 @@
-/* Steiger Bean brand tokens. Digital medium: dark ground, champagne accent. */
+/* Steiger Bean brand tokens.
+ *
+ * Two surfaces, one brand.
+ *
+ *   The room (default) — a phone, held at arm's length, often by someone in
+ *   their sixties or seventies in a lit lecture hall. Warm paper ground, deep
+ *   burgundy ink. Light-on-dark is the harder read for an ageing eye: the
+ *   pupil opens wider, so any uncorrected astigmatism smears light type into
+ *   its own background. Paper avoids that, and beats phone glare.
+ *
+ *   The presenter screens — the projected board, the projected matrix and the
+ *   dashboard. These stay on the dark ground, which is right for a projector
+ *   and is what the slide deck looks like. They opt in with
+ *   [data-surface="dark"].
+ *
+ * The champagne gold is the constraint that shapes everything else. On the
+ * dark ground it is 7.85:1 and carries every label. On paper it is 2.11:1,
+ * which fails WCAG at every level, for text and for control borders alike.
+ * So on the light surface gold is never text and never a boundary: it is a
+ * fill, a rule and a marker, and the type it carries is burgundy on top of it
+ * at 7.85:1. Labels move to a deepened bronze, same family, 7.30:1.
+ */
 
 :root {
-  --midnight: #2e0f15;
-  --ivory: #faf8f5;
-  --gold: #c9a96e;
-  --panel: #3b1b22;
-  --panel-inset: #24090d;
-  --muted: #b9aeab;
+  /* Raw brand palette. These never change meaning. */
+  --sb-burgundy: #2e0f15;
+  --sb-ivory: #faf8f5;
+  --sb-gold: #c9a96e;
+  --sb-panel: #3b1b22;
+  --sb-deep: #24090d;
+  --sb-warm-grey: #b9aeab;
 
+  /* Literal aliases. The presenter screens were built against these names. */
+  --midnight: var(--sb-burgundy);
+  --ivory: var(--sb-ivory);
+  --gold: var(--sb-gold);
+  --panel: var(--sb-panel);
+  --panel-inset: var(--sb-deep);
+  --muted: var(--sb-warm-grey);
   --hairline: rgba(201, 169, 110, 0.28);
   --hairline-strong: rgba(201, 169, 110, 0.65);
+
+  /* Semantic tokens. The room, on paper. Every ratio measured against the
+     surface the token actually sits on. */
+  --page: #faf8f5;
+  --surface: #ffffff;         /* a field you type into */
+  --surface-sunk: #f2ece5;    /* a panel set into the page */
+  --surface-quiet: #ede5dc;   /* a control that is switched off */
+
+  --ink: #2e0f15;             /* 16.6:1 on page — body copy */
+  /* Both clear 7:1 against the darkest light surface below, not just against
+     the page, so a label keeps AAA wherever it is set down. */
+  --ink-soft: #683e3a;        /* 7.2:1 worst case — AAA, still secondary */
+  --accent-ink: #60441a;      /* 7.2:1 worst case — AAA, the deepened gold */
+
+  --accent: #c9a96e;          /* fills, rules and markers only */
+  --on-accent: #2e0f15;       /* 7.9:1 on the gold */
+
+  --line: #8a6a46;            /* 4.7:1 — a real control boundary */
+  --line-soft: #d8cfc4;       /* decoration only, never load bearing */
+  --focus: #2e0f15;
 
   --radius: 3px;
 
   --serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --sans: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
+
+  /* Type scale. Everything the room reads is a rem, so a phone set to large
+     text actually gets large text. 1rem is the floor and nothing goes under
+     it. */
+  --t-min: 1rem;        /* 16 */
+  --t-sm: 1.0625rem;    /* 17 */
+  --t-base: 1.125rem;   /* 18 */
+  --t-md: 1.25rem;      /* 20 */
+  --t-lg: 1.5rem;       /* 24 */
+  --t-xl: 1.75rem;      /* 28 */
+  --t-2xl: 2.125rem;    /* 34 */
+
+  /* The smallest thing a finger is asked to hit. Apple says 44, Material says
+     48, an unsteady hand says more. */
+  --tap: 3.5rem;        /* 56 */
+}
+
+/* The presenter surfaces. Dark ground, gold carries text again. */
+[data-surface="dark"] {
+  --page: var(--sb-burgundy);
+  --surface: var(--sb-panel);
+  --surface-sunk: var(--sb-deep);
+  --surface-quiet: var(--sb-panel);
+
+  --ink: var(--sb-ivory);
+  --ink-soft: var(--sb-warm-grey);
+  --accent-ink: var(--sb-gold);
+
+  --accent: var(--sb-gold);
+  --on-accent: var(--sb-burgundy);
+
+  --line: var(--hairline-strong);
+  --line-soft: var(--hairline);
+  --focus: var(--sb-gold);
 }
 
 *,
@@ -27,15 +110,20 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--midnight);
-  color: var(--ivory);
+  background: var(--page);
+  color: var(--ink);
 }
 
 body {
   font-family: var(--sans);
-  font-weight: 300;
-  letter-spacing: 0.04em;
-  line-height: 1.7;
+  /* 400, not 300. Montserrat Light is a hairline at phone sizes and it is the
+     single biggest legibility cost in the original build. */
+  font-weight: 400;
+  /* Montserrat is already a wide face. Tracking on top of that pushes letters
+     out of their words, which is exactly the cue a slower reader is using. */
+  letter-spacing: 0.01em;
+  font-size: var(--t-base);
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -43,7 +131,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
   letter-spacing: inherit;
   color: inherit;
@@ -59,54 +148,61 @@ button {
 h1,
 h2,
 h3 {
-  font-weight: 300;
+  font-weight: 500;
   margin: 0;
 }
 
 a {
-  color: var(--gold);
-  text-decoration: none;
-  border-bottom: 1px solid var(--hairline);
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
+/* A focus ring that survives both grounds: a dark stroke with a paper halo
+   outside it, so it reads on burgundy, on gold and on white alike. */
 :focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--page);
 }
 
 /* Shared primitives ------------------------------------------------------ */
 
 .wordmark {
   font-family: var(--sans);
-  font-weight: 200;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
-  color: var(--ivory);
+  letter-spacing: 0.18em;
+  color: var(--ink);
 }
 
 .wordmark .dot {
-  color: var(--gold);
+  color: var(--accent-ink);
+}
+
+[data-surface="dark"] .wordmark .dot {
+  color: var(--sb-gold);
 }
 
 .label {
   font-family: var(--sans);
-  font-weight: 300;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  line-height: 1.3;
+  letter-spacing: 0.1em;
+  color: var(--accent-ink);
+  line-height: 1.35;
 }
 
 .rule {
-  height: 1px;
-  background: var(--gold);
-  opacity: 0.35;
+  height: 2px;
+  background: var(--accent);
   border: 0;
 }
 
 .numeral {
   font-family: var(--serif);
-  font-weight: 300;
+  font-weight: 500;
   line-height: 1;
   /* Cormorant ships old style figures by default, where 1 reads as a roman
      I. Every numeral in this app is a count, so ask for lining figures. */
@@ -136,36 +232,55 @@ a {
   }
 }
 
-/* Scrollbars ------------------------------------------------------------- */
-
-/* Firefox and anything modern. */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(201, 169, 110, 0.55) var(--panel-inset);
+/* Someone who has asked their phone for more contrast gets it. */
+@media (prefers-contrast: more) {
+  :root {
+    --ink-soft: #2e0f15;
+    --accent-ink: #3d2b0e;
+    --line: #2e0f15;
+    --line-soft: #8a6a46;
+  }
 }
 
-/* WebKit. The default light grey bar reads as a browser artefact on a dark
-   projected screen, which is exactly the thing this design avoids. */
+/* Scrollbars ------------------------------------------------------------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) var(--surface-sunk);
+}
+
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 *::-webkit-scrollbar-track {
-  background: var(--panel-inset);
+  background: var(--surface-sunk);
   border-radius: 2px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(201, 169, 110, 0.5);
+  background: var(--line);
   border-radius: 2px;
-  border: 2px solid var(--panel-inset);
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--gold);
+  border: 2px solid var(--surface-sunk);
 }
 
 *::-webkit-scrollbar-corner {
-  background: var(--panel-inset);
+  background: var(--surface-sunk);
+}
+
+/* The default light grey bar reads as a browser artefact on a dark projected
+   screen, which is exactly the thing this design avoids. */
+[data-surface="dark"] *,
+[data-surface="dark"] {
+  scrollbar-color: rgba(201, 169, 110, 0.55) var(--sb-deep);
+}
+
+[data-surface="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(201, 169, 110, 0.5);
+  border-color: var(--sb-deep);
+}
+
+[data-surface="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: var(--sb-gold);
 }

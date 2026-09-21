@@ -111,8 +111,9 @@ export function FunctionCombobox({ value, onChange, invalid }: Props) {
         className={styles.trigger}
         data-filled={value ? "true" : "false"}
         data-open={open ? "true" : "false"}
-        style={invalid ? { borderColor: "var(--gold)" } : undefined}
+        data-invalid={invalid ? "true" : "false"}
         aria-haspopup="listbox"
+        aria-invalid={invalid || undefined}
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
         onClick={() => {
@@ -195,7 +196,10 @@ export function FunctionCombobox({ value, onChange, invalid }: Props) {
                       className={styles.option}
                       onClick={() => choose(option)}
                     >
-                      {option}
+                      <span>{option}</span>
+                      <span className={styles.tick} aria-hidden="true">
+                        {option === value ? "\u2713" : ""}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -223,7 +227,7 @@ export function FunctionCombobox({ value, onChange, invalid }: Props) {
         <div className={styles.suggestion}>
           <span>
             {`Close to `}
-            <strong style={{ color: "var(--ivory)", fontWeight: 400 }}>{suggestion}</strong>
+            <strong className={styles.suggestionName}>{suggestion}</strong>
             {`. Use that instead, or keep what you wrote.`}
           </span>
           <div className={styles.suggestionActions}>

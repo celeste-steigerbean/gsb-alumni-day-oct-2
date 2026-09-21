@@ -179,7 +179,12 @@ export function CoverageMatrix({
 
   if (functions.length === 0) {
     return (
-      <section className={styles.panel} data-variant={variant} data-layout={variant}>
+      <section
+        className={styles.panel}
+        data-surface="dark"
+        data-variant={variant}
+        data-layout={variant}
+      >
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
         <p className={styles.empty}>
           {projecting
@@ -194,6 +199,7 @@ export function CoverageMatrix({
     <section
       ref={panelRef}
       className={styles.panel}
+      data-surface="dark"
       data-variant={variant}
       data-layout={projecting ? "projection" : "dashboard"}
     >
