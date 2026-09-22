@@ -388,57 +388,141 @@
   padding: 1.5rem 0;
 }
 
-/* Gate ------------------------------------------------------------------- */
+/* Gate -------------------------------------------------------------------
+ *
+ * The same standard as the room's way in: a visible label, a full-width rule
+ * under the mark, a button that is never dead on arrival, and errors that say
+ * what to do. This one is for the presenter, not the room, but it is typed on
+ * a phone as often as a laptop.
+ */
 
 .gate {
   min-height: 100dvh;
-  max-width: 26rem;
+  display: flex;
+  flex-direction: column;
+  max-width: 28rem;
   margin: 0 auto;
-  padding: 14vh 1.25rem 0;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.gateHead {
+  display: flex;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Centred in the room below the header, so the field sits near the thumb. */
+.gateBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 0 4rem;
 }
 
 .gateTitle {
   font-family: var(--serif);
   font-weight: 600;
-  font-size: var(--t-2xl);
-  margin: 1.25rem 0 0.5rem;
+  font-size: clamp(2rem, 8vw, var(--t-2xl));
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
   color: var(--ink);
 }
 
 .gateLede {
-  font-size: var(--t-sm);
-  color: var(--ink-soft);
-  margin: 0 0 1.25rem;
+  font-size: var(--t-base);
+  color: var(--ink);
+  margin: 0 0 1.5rem;
   line-height: 1.6;
 }
 
-.gateInput {
-  width: 100%;
-  min-height: 3.5rem;
-  padding: 0.875rem 1rem;
-  font-size: var(--t-base);
+.gateLabel {
+  display: block;
+  font-size: var(--t-min);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-ink);
+  margin-bottom: 0.625rem;
+}
+
+/* The field and its Show button read as one control, with one border around
+   both. Each keeps its own focus ring: drawing a single ring on the wrapper
+   needs :has(), and a browser without it would show no focus at all. */
+.gateField {
+  display: flex;
+  align-items: stretch;
   background: var(--surface);
   border: 2px solid var(--line);
   border-radius: var(--radius);
+}
+
+.gateField:focus-within {
+  border-color: var(--ink);
+}
+
+.gateInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 3.75rem;
+  padding: 0.875rem 1rem;
+  font-size: var(--t-md);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
   color: var(--ink);
-  margin-bottom: 0.75rem;
+}
+
+/* Progressive: the message below is what actually tells you. */
+.gateField:has(.gateInput[aria-invalid="true"]) {
+  border-color: var(--ink);
+  border-width: 3px;
+}
+
+.gateReveal {
+  flex: 0 0 auto;
+  min-width: 4.5rem;
+  min-height: 3.75rem;
+  padding: 0 1rem;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border-left: 2px solid var(--line-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.gateReveal[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--page);
 }
 
 .gateButton {
   width: 100%;
-  min-height: 3.5rem;
-  font-size: var(--t-sm);
+  min-height: 3.75rem;
+  margin-top: 0.75rem;
+  font-size: var(--t-md);
   font-weight: 600;
+  letter-spacing: 0.02em;
   background: var(--ink);
   color: var(--page);
   border: 2px solid var(--ink);
   border-radius: var(--radius);
 }
 
+/* Only while the answer is in flight. */
+.gateButton:disabled {
+  background: var(--surface-quiet);
+  color: var(--ink-soft);
+  border-color: var(--line);
+  cursor: default;
+}
+
 .gateError {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.875rem;
+  margin: 1rem 0 0;
   padding: 0.75rem 0.875rem;
   font-size: var(--t-sm);
   font-weight: 500;
@@ -452,4 +536,29 @@
 .errorMark {
   flex: 0 0 auto;
   font-weight: 700;
+}
+
+/* A phone on its side, or a short browser window. */
+@media (max-height: 34rem) {
+  .gate {
+    padding: 1rem 1.25rem 1.25rem;
+  }
+
+  .gateBody {
+    padding: 1rem 0;
+  }
+
+  .gateTitle {
+    font-size: 1.625rem;
+  }
+
+  /* The lede describes the dashboard to the person who built it. On a screen
+     this short it gives way so the field and the button stay in view. */
+  .gateLede {
+    display: none;
+  }
+
+  .gateTitle {
+    margin-bottom: 1rem;
+  }
 }

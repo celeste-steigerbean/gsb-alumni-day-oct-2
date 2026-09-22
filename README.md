@@ -680,6 +680,33 @@ into view, so the answer to "why did nothing happen" is always on screen.
 
 ---
 
+## The admin gate
+
+Brought to the same standard as the room's way in. It is for the presenter,
+not the room, but it gets typed on a phone as often as a laptop.
+
+- **A visible label.** The password field used to be an empty box under a
+  line of grey, with its label hidden from sight.
+- **Show / Hide.** Typing a password you cannot see, on a phone, is the most
+  common way a sign-in fails. The toggle is its own 44px target with
+  `aria-pressed`, and the field keeps `autocomplete="current-password"` so a
+  password manager can fill it.
+- **A true answer to an empty submit.** An empty field used to go to the
+  server and come back as "That password does not match". It now says "Type
+  the session password, then press Open", and any message clears as soon as
+  you start typing.
+- **The full-width rule under the mark**, as on every other screen.
+- **A missing `ADMIN_PASSWORD` is shown as a warning**, not a quiet grey line,
+  since it is the reason nobody can get in.
+- **A short screen drops the description** under the title so the field and
+  the button stay in view with the phone on its side.
+
+Each part of the field keeps its own native focus ring. Drawing one ring round
+the pair would need `:has()`, and a browser without it would show no focus at
+all.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -794,3 +821,10 @@ Re-verified after the submit pass, at 375x667, 390x844, 360x640, 320x568,
 - Zero contrast failures at AA and AAA, zero text under 16px, zero tap targets
   under 44px and no sideways scroll on submit, unlock and the dashboard
 - The projected board and matrix are unchanged, with nothing clipped
+
+Re-verified after the admin gate pass, at 375x667, 320x568, 667x375 and
+1440x900: a visible label and the full-width rule at all four, the field and
+the button on screen without scrolling at all four, zero contrast failures at
+AA and AAA, nothing under 16px and no target under 44px. Empty, wrong and
+right passwords each do the right thing, Enter submits, Show and Hide switch
+the field and report their state, and Tab runs mark, field, Show, Open.
