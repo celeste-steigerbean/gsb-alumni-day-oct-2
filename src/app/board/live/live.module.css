@@ -1,11 +1,22 @@
-/* Projection screen. Built for 1920x1080, read at fifteen feet.
-   Every size scales from --scale so the room can be tuned with a URL flag.
-   Nothing renders below 22px at scale 1. */
+/* Projection screen, read at fifteen feet.
+ *
+ * Every size is a multiple of --k, one design pixel. At 1920x1080 --k is
+ * exactly 1px, so this is the board as it was drawn. On any other screen it
+ * is the same picture scaled: a 720p projector used to render 24px cards in
+ * 16px-wide columns, which collided the headings into each other and cut
+ * "COMMUNICATIONS" off mid-word. The ?scale= flag still multiplies on top.
+ *
+ * Nothing renders below 22 design pixels.
+ */
 
 .stage {
   --scale: 1;
-  --gutter: calc(38px * var(--scale));
-  --card-gap: calc(14px * var(--scale));
+  /* min() of the two ratios, so the board always fits the shorter dimension
+     rather than overflowing one of them. Floored so a laptop preview stays
+     legible. */
+  --k: max(0.42px, calc(var(--scale) * min(100vw / 1920, 100vh / 1080)));
+  --gutter: calc(38 * var(--k));
+  --card-gap: calc(14 * var(--k));
 
   position: fixed;
   inset: 0;
@@ -27,14 +38,14 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: calc(30px * var(--scale));
-  padding-bottom: calc(16px * var(--scale));
+  gap: calc(30 * var(--k));
+  padding-bottom: calc(16 * var(--k));
   border-bottom: 1px solid var(--hairline);
   flex: 0 0 auto;
 }
 
 .mark {
-  font-size: calc(23px * var(--scale));
+  font-size: calc(23 * var(--k));
   letter-spacing: 0.26em;
   line-height: 1;
 }
@@ -42,7 +53,7 @@
 .headline {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: calc(34px * var(--scale));
+  font-size: calc(34 * var(--k));
   line-height: 1;
   color: var(--ivory);
   letter-spacing: 0.01em;
@@ -51,14 +62,14 @@
 .tally {
   display: flex;
   align-items: baseline;
-  gap: calc(14px * var(--scale));
+  gap: calc(14 * var(--k));
   flex: 0 0 auto;
 }
 
 .tallyNumber {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: calc(62px * var(--scale));
+  font-size: calc(62 * var(--k));
   line-height: 0.85;
   color: var(--ivory);
   font-variant-numeric: lining-nums tabular-nums;
@@ -66,7 +77,7 @@
 }
 
 .tallyLabel {
-  font-size: calc(22px * var(--scale));
+  font-size: calc(22 * var(--k));
   text-transform: uppercase;
   letter-spacing: 0.22em;
   color: var(--gold);
@@ -75,11 +86,11 @@
 
 .statusDot {
   display: inline-block;
-  width: calc(9px * var(--scale));
-  height: calc(9px * var(--scale));
+  width: calc(9 * var(--k));
+  height: calc(9 * var(--k));
   border-radius: 50%;
   background: var(--gold);
-  margin-left: calc(10px * var(--scale));
+  margin-left: calc(10 * var(--k));
   vertical-align: middle;
   transition: opacity 400ms linear;
 }
@@ -94,8 +105,8 @@
   flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: calc(18px * var(--scale));
-  padding-top: calc(18px * var(--scale));
+  gap: calc(18 * var(--k));
+  padding-top: calc(18 * var(--k));
   min-height: 0;
 }
 
@@ -108,16 +119,16 @@
 
 .columnHead {
   flex: 0 0 auto;
-  padding-bottom: calc(10px * var(--scale));
+  padding-bottom: calc(10 * var(--k));
   border-bottom: 1px solid var(--hairline);
-  margin-bottom: calc(14px * var(--scale));
+  margin-bottom: calc(14 * var(--k));
 }
 
 .columnName {
   display: flex;
   align-items: baseline;
-  gap: calc(9px * var(--scale));
-  font-size: calc(24px * var(--scale));
+  gap: calc(9 * var(--k));
+  font-size: calc(24 * var(--k));
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: var(--gold);
@@ -126,7 +137,7 @@
 
 .columnCount {
   font-family: var(--serif);
-  font-size: calc(24px * var(--scale));
+  font-size: calc(24 * var(--k));
   color: var(--muted);
   letter-spacing: 0;
   font-variant-numeric: lining-nums tabular-nums;
@@ -134,14 +145,23 @@
 }
 
 .columnHelper {
-  margin-top: calc(7px * var(--scale));
-  font-size: calc(22px * var(--scale));
+  margin-top: calc(7 * var(--k));
+  font-size: calc(22 * var(--k));
   line-height: 1.3;
   color: var(--muted);
   /* Three lines, always. Uneven header heights would stagger the six rules
-     across the screen, which is the first thing the room would notice. */
+     across the screen, which is the first thing the room would notice.
+
+     The text is fitted into those three lines rather than clipped at them,
+     so a longer line of explanation ends where it means to. */
   height: calc(1.3em * 3);
   overflow: hidden;
+}
+
+.columnNameText {
+  display: block;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .viewport {
@@ -155,15 +175,15 @@
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    #000 calc(16px * var(--scale)),
-    #000 calc(100% - 26px * var(--scale)),
+    #000 calc(16 * var(--k)),
+    #000 calc(100% - 26 * var(--k)),
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    #000 calc(16px * var(--scale)),
-    #000 calc(100% - 26px * var(--scale)),
+    #000 calc(16 * var(--k)),
+    #000 calc(100% - 26 * var(--k)),
     transparent 100%
   );
 }
@@ -201,7 +221,7 @@
 /* Cards ------------------------------------------------------------------ */
 
 .card {
-  padding: calc(15px * var(--scale)) calc(16px * var(--scale));
+  padding: calc(15 * var(--k)) calc(16 * var(--k));
   background: var(--panel);
   border: 1px solid rgba(201, 169, 110, 0.3);
   border-left: 2px solid var(--gold);
@@ -210,17 +230,26 @@
 
 .cardFunction {
   display: block;
-  font-size: calc(22px * var(--scale));
+  font-size: calc(22 * var(--k));
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  /* 0.15em put "COMMUNICATIONS" a few pixels over the column and broke it
+     across two lines. Tighter tracking fits the longest real function name on
+     one line, and reads better besides. */
+  letter-spacing: 0.1em;
   color: var(--gold);
   line-height: 1.25;
-  margin-bottom: calc(8px * var(--scale));
+  margin-bottom: calc(8 * var(--k));
+  /* break-word is the backstop for a pathological function name. The negative
+     margin gives back the trailing letter-space, which is applied after the
+     final character and was pushing "COMMUNICATIONS" onto a second line by
+     the width of one gap. */
+  overflow-wrap: break-word;
+  margin-right: -0.1em;
 }
 
 .cardTask {
   display: block;
-  font-size: calc(24px * var(--scale));
+  font-size: calc(24 * var(--k));
   line-height: 1.36;
   color: var(--ivory);
   overflow-wrap: break-word;
@@ -233,7 +262,7 @@
 @keyframes arrive {
   from {
     opacity: 0;
-    transform: translate3d(0, calc(-18px * var(--scale)), 0);
+    transform: translate3d(0, calc(-18 * var(--k)), 0);
   }
   to {
     opacity: 1;
@@ -242,11 +271,11 @@
 }
 
 .columnEmpty {
-  font-size: calc(22px * var(--scale));
+  font-size: calc(22 * var(--k));
   line-height: 1.4;
   color: var(--muted);
   opacity: 0.55;
-  padding-top: calc(6px * var(--scale));
+  padding-top: calc(6 * var(--k));
 }
 
 /* Empty room ------------------------------------------------------------- */
@@ -263,15 +292,112 @@
 .openingTitle {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: calc(58px * var(--scale));
+  font-size: calc(58 * var(--k));
   line-height: 1.15;
   color: var(--ivory);
 }
 
 .openingLine {
-  margin-top: calc(18px * var(--scale));
-  font-size: calc(26px * var(--scale));
+  margin-top: calc(18 * var(--k));
+  font-size: calc(26 * var(--k));
   text-transform: uppercase;
   letter-spacing: 0.26em;
   color: var(--gold);
+}
+
+/* Paging ----------------------------------------------------------------- */
+
+/* The columns drift on their own. These are for the presenter who wants to
+   get somewhere now, and they stay out of the room's way until asked for. */
+.topZone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(76 * var(--k));
+  z-index: 50;
+  /* The stage hides the cursor. It comes back here, or there is no way to aim
+     at the controls this strip reveals. */
+  cursor: auto;
+}
+
+.pager {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(20 * var(--k));
+  /* Solid for longer than the header row is tall, so the headline and the
+     tally do not read through the bar that is covering them. */
+  padding: calc(16 * var(--k)) calc(34 * var(--k)) calc(42 * var(--k));
+  background: linear-gradient(
+    to bottom,
+    var(--midnight) 0%,
+    var(--midnight) 84%,
+    rgba(46, 15, 21, 0) 100%
+  );
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  cursor: auto;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.topZone:hover ~ .pager,
+.pager:hover,
+.pager:focus-within {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(52 * var(--k));
+  height: calc(52 * var(--k));
+  font-size: calc(30 * var(--k));
+  font-weight: 700;
+  line-height: 1;
+  color: var(--midnight);
+  background: var(--gold);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pageLabel {
+  font-size: calc(24 * var(--k));
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--ivory);
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  min-width: calc(190 * var(--k));
+  text-align: center;
+}
+
+.pageHint {
+  font-size: calc(19 * var(--k));
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+/* Held still by hand. The drift is off and the track is placed by page. */
+.track[data-paged="true"] {
+  animation: none;
+  transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { BoardPayload } from "@/lib/board-payload";
 import { BUCKETS } from "@/lib/buckets";
@@ -17,6 +17,13 @@ type Props = {
 
 /** How long a card keeps its arrival animation. */
 const ARRIVAL_MS = 1_400;
+
+/**
+ * How long the board stays where the presenter put it before the drift takes
+ * over again. Long enough to read a screenful out loud, short enough that a
+ * board left alone goes back to looking after itself.
+ */
+const HOLD_MS = 20_000;
 
 export function LiveBoard({ initial, scale, speed, forcePolling }: Props) {
   const { payload, status } = useLiveBoard({ mode: "live", initial, forcePolling });
@@ -59,6 +66,60 @@ export function LiveBoard({ initial, scale, speed, forcePolling }: Props) {
 
   const isEmpty = (view.entries ?? []).length === 0;
 
+  // Paging by hand. The columns drift on their own; these put the board where
+  // the presenter wants it and then hand it back.
+  const [page, setPage] = useState(0);
+  const [held, setHeld] = useState(false);
+  const [pagesByColumn, setPagesByColumn] = useState<Record<string, number>>({});
+  const releaseRef = useRef<number | null>(null);
+
+  const pages = Math.max(1, ...Object.values(pagesByColumn));
+
+  const reportPages = useMemo(() => {
+    const cache: Record<string, (n: number) => void> = {};
+    for (const definition of BUCKETS) {
+      cache[definition.key] = (n: number) =>
+        setPagesByColumn((current) =>
+          current[definition.key] === n ? current : { ...current, [definition.key]: n },
+        );
+    }
+    return cache;
+  }, []);
+
+  const turn = useCallback(
+    (delta: number) => {
+      setHeld(true);
+      setPage((current) => {
+        const count = Math.max(1, ...Object.values(pagesByColumn));
+        return (current + delta + count) % count;
+      });
+      if (releaseRef.current) window.clearTimeout(releaseRef.current);
+      releaseRef.current = window.setTimeout(() => {
+        setHeld(false);
+        setPage(0);
+      }, HOLD_MS);
+    },
+    [pagesByColumn],
+  );
+
+  useEffect(
+    () => () => {
+      if (releaseRef.current) window.clearTimeout(releaseRef.current);
+    },
+    [],
+  );
+
+  // A clicker sends arrow keys, which is how this actually gets driven from
+  // the front of a room.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") turn(1);
+      else if (event.key === "ArrowLeft") turn(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [turn]);
+
   return (
     <div className={styles.stage} data-surface="dark" style={{ "--scale": scale } as React.CSSProperties}>
       <header className={styles.top}>
@@ -75,6 +136,34 @@ export function LiveBoard({ initial, scale, speed, forcePolling }: Props) {
         </span>
       </header>
 
+      {pages > 1 ? (
+        <>
+          <div className={styles.topZone} aria-hidden="true" />
+          <div className={styles.pager}>
+            <button
+              type="button"
+              className={styles.pageButton}
+              onClick={() => turn(-1)}
+              aria-label="Back a screen"
+            >
+              <span aria-hidden="true">{"\u2039"}</span>
+            </button>
+            <span className={styles.pageLabel}>{`Screen ${page + 1} of ${pages}`}</span>
+            <button
+              type="button"
+              className={styles.pageButton}
+              onClick={() => turn(1)}
+              aria-label="On a screen"
+            >
+              <span aria-hidden="true">{"\u203A"}</span>
+            </button>
+            <span className={styles.pageHint}>
+              {held ? "Held \u2014 drifting again shortly" : "Drifting"}
+            </span>
+          </div>
+        </>
+      ) : null}
+
       <div className={styles.columns}>
         {columns.map((column) => (
           <BoardColumn
@@ -84,6 +173,9 @@ export function LiveBoard({ initial, scale, speed, forcePolling }: Props) {
             entries={column.entries}
             arrivingIds={arrivingIds}
             pixelsPerSecond={speed}
+            paged={held}
+            page={page}
+            onPages={reportPages[column.key]}
           />
         ))}
       </div>

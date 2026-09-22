@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { BUCKETS, type BucketKey } from "@/lib/buckets";
 import { displayFunctionLabel } from "@/lib/functions";
+import { FitText } from "./fit-text";
 import styles from "./coverage-matrix.module.css";
 
 export type Selection = { bucket: BucketKey | null; fn: string | null };
@@ -60,62 +61,6 @@ function projectionFit(viewportHeight: number) {
     min: Math.max(11, Math.round(viewportHeight / 77)),
     max: Math.max(16, Math.round(viewportHeight / 45)),
   };
-}
-
-/**
- * A task, sized to its box.
- *
- * The note's slot has a definite height, so the text is shrunk until all of it
- * fits rather than clipped at a line count. Binary search over whole pixels:
- * five reflows for a range this size, and it only re-runs when the text or the
- * box actually changes.
- */
-function FitText({ text, min, max }: { text: string; min: number; max: number }) {
-  const ref = useRef<HTMLSpanElement>(null);
-
-  const fit = useCallback(() => {
-    const el = ref.current;
-    const host = el?.parentElement;
-    if (!el || !host) return;
-
-    let lo = min;
-    let hi = max;
-    let best = min;
-    while (lo <= hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      el.style.fontSize = `${mid}px`;
-      if (host.scrollHeight <= host.clientHeight) {
-        best = mid;
-        lo = mid + 1;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    el.style.fontSize = `${best}px`;
-  }, [min, max]);
-
-  useLayoutEffect(() => {
-    fit();
-    const host = ref.current?.parentElement;
-    if (!host || typeof ResizeObserver === "undefined") return;
-    // Coalesce to one measurement per frame: a page turn resizes every note.
-    let frame = 0;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(fit);
-    });
-    observer.observe(host);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, [fit, text]);
-
-  return (
-    <span ref={ref} className={styles.noteText}>
-      {text}
-    </span>
-  );
 }
 
 /**
@@ -500,7 +445,12 @@ export function CoverageMatrix({
                             }`}
                             data-example={entry.isExample ? "true" : "false"}
                           >
-                            <FitText text={entry.task} min={fit.min} max={fit.max} />
+                            <FitText
+                              text={entry.task}
+                              min={fit.min}
+                              max={fit.max}
+                              className={styles.noteText}
+                            />
                           </article>
                         ))}
                         {hidden > 0 ? (

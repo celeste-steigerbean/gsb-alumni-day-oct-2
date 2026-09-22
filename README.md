@@ -571,6 +571,49 @@ shrinks for no reason.
 
 ---
 
+## The projected board: scaling, and paging
+
+### Every size is a multiple of one design pixel
+
+`--k` is one design pixel. At 1920x1080 it is exactly `1px`, so the board is
+the picture it was drawn as. On any other screen it is that picture scaled:
+
+```css
+--k: max(0.42px, calc(var(--scale) * min(100vw / 1920, 100vh / 1080)));
+```
+
+The old board hard-coded 1080p sizes. On a 720p projector it rendered 24px
+cards inside columns two-thirds the width, which collided "RESTRUCTURE" into
+"RECONCILE", cut "COMMUNICATIONS" off mid-word and truncated five of the six
+helper lines. The same board now reads identically at 1080p, 720p, 1440x900
+and 1024x768 — the type shrinks with the columns, so the *proportions* hold,
+which is what matters on an image stretched to a wall. `?scale=` still
+multiplies on top for a room that needs it bigger or smaller.
+
+**Nothing on this board is fitted to a box**, unlike the matrix. A card has no
+fixed height — it grows and its column scrolls — so a long task wraps rather
+than being cut. The one fixed-height element is the three-line helper under
+each task type, which is kept uniform across the six on purpose: fitting each
+one separately grew the short ones and shrank the long ones, and a staggered
+header row is the first thing a room notices.
+
+### Arrows, without losing the drift
+
+The columns still drift on their own, which is the board's whole character.
+The arrows are for the presenter who wants to get somewhere now.
+
+- Hovering the top edge brings down a bar: `‹  Screen 2 of 4  ›`, with the
+  cursor, which the board otherwise hides.
+- **Left and right arrow keys** do the same thing, which is how this gets
+  driven from the front of a room with a clicker.
+- Using either **holds** the board: the drift stops and all six columns jump
+  by whole screenfuls together. A column with fewer screenfuls than the one
+  being paged to stays where it is rather than scrolling into blank space.
+- After twenty seconds untouched it releases itself, returns to the first
+  screen and resumes drifting. The bar says which state it is in.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -644,3 +687,19 @@ crowded cell:
   rather than stranded beside the block, and still measures 44px or taller
 - Heading filters, full screen, Escape back out, and the attendee flow all still
   work, with no console errors
+
+Re-verified after the projected board pass:
+
+- The board renders with **zero** clipped helper lines and **zero** clipped
+  function labels at 1920x1080, 1280x720, 1440x900 and 1024x768, and with no
+  column overlapping its neighbour at any of them
+- The six helper lines are one uniform size and height on every screen
+- Card text scales 24px → 16px between 1080p and 720p, the same share of the
+  picture at both
+- Paging wraps both ways by button and by arrow key, holds the drift, clamps
+  short columns, and releases itself after twenty seconds back to the first
+  screen
+- The reveal bar is invisible at rest and fully opaque over the header when
+  shown
+- Dashboard, submit and unlock unchanged: zero contrast failures at AA and
+  AAA, zero tap targets under 44px, no console errors
