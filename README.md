@@ -558,9 +558,16 @@ not at all.
 - Auto-rotation only advances the page; a full lap of the columns is what turns
   a crowded cell over to its next answer.
 
-Defaults: four columns a page. Two answers a cell on the dashboard (the rest
-counted as `+N more`, with the full table underneath), one on the projection so
-it can rotate. `?columns=` and `?notes=` still tune the projected route.
+Defaults: four columns a page, one answer a cell on both surfaces. The rest of
+a cell is counted as `+N more`, with the full table underneath on the dashboard
+and the projection rotating through them. One a cell keeps the grid scannable —
+the panel is about a thousand pixels tall rather than fifteen hundred — and
+gives that one answer the whole box, so it reads at full size instead of being
+shrunk to share. `?columns=` and `?notes=` still tune the projected route.
+
+The `+N more` line is a real row inside the box, so a row that has one gets an
+allowance for it; without that the answer above is squeezed and its text
+shrinks for no reason.
 
 ---
 
@@ -626,12 +633,14 @@ crowded cell:
 - **Zero** clipped notes on the dashboard at 1440x1000 and 1100x900, and on the
   projection at 1920x1080 and 1280x720 — measured as content height against box
   height for every note on screen, not by eye
-- Notes land at 13–16px on the dashboard and 12–24px on the projection,
+- Notes land at 15–16px on the dashboard and 15–24px on the projection,
   shrinking only as far as the text needs
 - **Zero** contrast failures at AA and at AAA on the dashboard and its gate,
   and **zero** tap targets under 44px, matrix filter headings included
 - Paging wraps at both ends, by button and by arrow key, and the arrow keys stay
   out of the way while the search box has focus
 - The last page shows a single function at its normal width, not stretched
+- A column heading that wraps to two lines keeps its count on the last line
+  rather than stranded beside the block, and still measures 44px or taller
 - Heading filters, full screen, Escape back out, and the attendee flow all still
   work, with no console errors

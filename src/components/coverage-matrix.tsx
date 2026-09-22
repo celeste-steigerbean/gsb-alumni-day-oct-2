@@ -143,7 +143,7 @@ export function CoverageMatrix({
   const projecting = variant === "projection" || expanded;
 
   const columns = columnsPerPage ?? 4;
-  const notes = notesPerCell ?? (projecting ? 1 : 2);
+  const notes = notesPerCell ?? 1;
 
   const [screenHeight, setScreenHeight] = useState(1080);
   useEffect(() => {
@@ -280,19 +280,22 @@ export function CoverageMatrix({
     [functions, page, columns],
   );
 
-  // How many notes the busiest cell in each row is actually showing. A row
-  // where nobody has written anything does not need to be as tall as a row
-  // with two answers in it, and six full height rows of mostly empty boxes
-  // is a lot of nothing to scroll past.
+  // How many notes the busiest cell in each row is actually showing, and
+  // whether any cell in it has to carry a "+N more". A row where nobody has
+  // written anything does not need to be as tall as one with answers in it,
+  // and six full height rows of mostly empty boxes is a lot of nothing to
+  // scroll past.
   const rowSlots = useMemo(
     () =>
       BUCKETS.map((definition) => {
         let most = 0;
+        let over = false;
         for (const fn of shown) {
           const count = (byCell.get(`${definition.key}|${fn}`) ?? []).length;
           if (count > most) most = count;
+          if (count > notes) over = true;
         }
-        return Math.max(1, Math.min(most, notes));
+        return { slots: Math.max(1, Math.min(most, notes)), more: over };
       }),
     [shown, byCell, notes],
   );
@@ -303,7 +306,15 @@ export function CoverageMatrix({
   const gridRows = projecting
     ? undefined
     : `auto ${rowSlots
-        .map((n) => `calc(var(--slot-h) * ${n} + var(--gap) * ${n + 1})`)
+        .map(
+          // The "+N more" line is a real row inside the box. Without an
+          // allowance for it the one answer above gets squeezed and its text
+          // shrinks for no reason.
+          ({ slots, more }) =>
+            `calc(var(--slot-h) * ${slots} + var(--gap) * ${slots + 1}${
+              more ? " + var(--more-h)" : ""
+            })`,
+        )
         .join(" ")}`;
 
   /** Trim a cell to what its box holds, rotating the rest into view later. */
