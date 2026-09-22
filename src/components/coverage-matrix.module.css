@@ -392,6 +392,12 @@
   line-height: 1.35;
 }
 
+/* Until FitText has sized it. The box and its border still draw, so nothing
+   moves; the words simply arrive at their real size instead of snapping to it. */
+.noteText:not([data-fit]) {
+  visibility: hidden;
+}
+
 /* An example is a prop, not somebody's answer. The dashed edge says so. */
 .note[data-example="true"] {
   border-left-style: dashed;

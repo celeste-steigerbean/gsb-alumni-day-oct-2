@@ -3,6 +3,13 @@
 import { useCallback, useLayoutEffect, useRef } from "react";
 
 /**
+ * How long a first fit waits for the brand font before settling for the
+ * stand-in. Fitting in the stand-in and again when Montserrat lands shows as a
+ * visible jump; waiting forever on slow wifi shows as empty boxes.
+ */
+const FONT_WAIT_MS = 800;
+
+/**
  * Text, sized to the box it is in.
  *
  * Used wherever a slot has a definite height and the alternative to shrinking
@@ -47,18 +54,32 @@ export function FitText({
       }
     }
     el.style.fontSize = `${best}px`;
+    // Hidden until this first runs (see the stylesheet). The server sends the
+    // text at a default size, and showing it would mean every note visibly
+    // snapping to its real size a moment after the page appears.
+    el.dataset.fit = "";
   }, [min, max]);
 
   useLayoutEffect(() => {
-    fit();
     const el = ref.current;
     const host = el?.parentElement;
     if (!el || !host) return;
 
-    // Coalesce to one measurement per frame: a page turn resizes every note.
     let frame = 0;
     let live = true;
+    // Nothing re-fits until the first fit has happened on purpose. A
+    // ResizeObserver reports once the moment it starts watching, and letting
+    // that through would size the text in the stand-in font straight away,
+    // which is the very jump the wait below exists to avoid.
+    let armed = false;
+    const first = () => {
+      if (!live || armed) return;
+      armed = true;
+      fit();
+    };
+    // Coalesce to one measurement per frame: a page turn resizes every note.
     const schedule = () => {
+      if (!armed) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => live && fit());
     };
@@ -74,10 +95,25 @@ export function FitText({
 
     const fonts = typeof document === "undefined" ? undefined : document.fonts;
     fonts?.addEventListener?.("loadingdone", schedule);
-    fonts?.ready?.then(schedule);
+
+    // Fit now if the brand font is in, which is nearly always. If it is still
+    // on its way, give it a moment so the text appears once, at its real size,
+    // in its real font; after that, fit in the stand-in and re-fit on arrival.
+    let wait = 0;
+    if (!fonts || fonts.status === "loaded") {
+      first();
+    } else {
+      wait = window.setTimeout(first, FONT_WAIT_MS);
+    }
+    fonts?.ready?.then(() => {
+      window.clearTimeout(wait);
+      if (armed) schedule();
+      else first();
+    });
 
     return () => {
       live = false;
+      window.clearTimeout(wait);
       cancelAnimationFrame(frame);
       observer?.disconnect();
       fonts?.removeEventListener?.("loadingdone", schedule);

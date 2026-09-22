@@ -121,7 +121,7 @@ export function LiveBoard({ initial, scale, speed, forcePolling }: Props) {
   }, [turn]);
 
   return (
-    <div className={styles.stage} data-surface="dark" style={{ "--scale": scale } as React.CSSProperties}>
+    <div className={styles.stage} style={{ "--scale": scale } as React.CSSProperties}>
       <header className={styles.top}>
         <span className={`wordmark ${styles.mark}`}>
           Steiger Bean <span className="dot">&bull;</span>

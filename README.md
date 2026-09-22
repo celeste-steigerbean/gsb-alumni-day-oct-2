@@ -444,9 +444,11 @@ colour alone. It is wider and denser than a phone, not dimmer.
 dashboard view and `/board/matrix` are one implementation, on the same ground
 as the dashboard it expands from.
 
-**The live board keeps the dark ground.** `/board/live` stays burgundy and
-champagne, as the slide deck is. It opts in with `data-surface="dark"`, which
-re-points the semantic tokens.
+**So does the live board.** `/board/live` is on the same paper, with labels in
+ink and the deepened bronze, gold kept for rules and card edges, and the hairline
+300 weights raised to 600 so they hold up on a projector. No screen uses the
+dark ground now; its tokens stay under `data-surface="dark"` so one attribute
+brings it back if a particular projector washes paper out.
 
 ### The gold problem
 
@@ -536,6 +538,14 @@ actually changes (a `ResizeObserver`, coalesced to one measurement a frame).
 The ceiling is high on purpose. A short task grows to fill its box instead of
 sitting small in one corner of it, so sizes differ from cell to cell. What is
 not acceptable is a box three quarters empty or one cut off.
+
+Text stays hidden until it has been fitted. The server sends it at a default
+size, and showing that meant every note visibly snapping from 18px to its real
+size a moment after the page appeared, which on a projector reads as flicker. A
+first fit also waits up to 0.8 seconds for the brand font, so text appears once,
+in its real font at its real size. Past that it fits in the stand-in and re-fits
+when the font lands: one resize, on a slow first visit only, since the font is
+cached after.
 
 It re-fits when the text itself changes size, not only the box. The brand font
 can arrive after the first fit, on a first visit over real wifi, and Montserrat
@@ -948,4 +958,18 @@ seeded across the grid and the brand font held back by 1.5 and by 4 seconds:
   failures at AA and AAA and nothing under 44px to tap, the reveal bar included
 - The room code field shows exactly what is typed, and `gsb26` in lowercase
   still unlocks
+
+Re-verified after the live board went to paper and the load flicker fix, by
+recording every painted frame:
+
+- **Zero** notes change size while the page loads, with the font on time or
+  half a second late, against every note on the projected matrix before
+- **Zero** size changes across about 480 frames at rest on the dashboard, the
+  full-screen view, `/board/matrix` and the live board, and zero on screen
+  while the matrix turns a page every two seconds
+- No clipped notes and none left hidden, with the font on time or 1.5 seconds
+  late; boxes 95 to 100 percent full
+- The live board on paper at 1920x1080, 1280x720 and 1440x900 with zero
+  contrast failures at AA and AAA, the paging bar included, and nothing clipped
+  or colliding
 

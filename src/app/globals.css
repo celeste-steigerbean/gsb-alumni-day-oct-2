@@ -1,6 +1,6 @@
 /* Steiger Bean brand tokens.
  *
- * Two surfaces, one brand.
+ * One ground, one brand.
  *
  *   The room (default) — a phone, held at arm's length, often by someone in
  *   their sixties or seventies in a lit lecture hall. Warm paper ground, deep
@@ -8,10 +8,10 @@
  *   pupil opens wider, so any uncorrected astigmatism smears light type into
  *   its own background. Paper avoids that, and beats phone glare.
  *
- *   The presenter screens — the projected board, the projected matrix and the
- *   dashboard. These stay on the dark ground, which is right for a projector
- *   and is what the slide deck looks like. They opt in with
- *   [data-surface="dark"].
+ *   Every screen, the projected ones included, is on this paper ground. The
+ *   dark tokens under [data-surface="dark"] are kept so a screen can opt back
+ *   in with one attribute if a particular projector washes paper out, but no
+ *   screen uses them at present.
  *
  * The champagne gold is the constraint that shapes everything else. On the
  * dark ground it is 7.85:1 and carries every label. On paper it is 2.11:1,
@@ -81,7 +81,7 @@
   --tap: 3.5rem;        /* 56 */
 }
 
-/* The presenter surfaces. Dark ground, gold carries text again. */
+/* Dark ground, opt in only. Gold carries text again here. Unused at present. */
 [data-surface="dark"] {
   --page: var(--sb-burgundy);
   --surface: var(--sb-panel);
