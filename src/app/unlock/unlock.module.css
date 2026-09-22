@@ -1,23 +1,51 @@
 /* The way in. One field, nothing else to read.
-   Same rules as the submit screen: rem sizing, nothing under 1rem, weight 400
-   and up, every target 3.5rem or taller. */
+ *
+ * Same rules as the rest of the room's screens: rem sizing, nothing under
+ * 1rem, weight 400 and up, every target 3.5rem or taller.
+ *
+ * This is the first thing anyone sees, so two things matter more here than
+ * anywhere else: the field has to be on screen without scrolling, whichever
+ * way the phone is held, and the button must never look dead.
+ */
 
 .page {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 2rem 1.25rem 4rem;
+  padding: 1.5rem 1.25rem 2.5rem;
   max-width: 30rem;
   margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  /* Full width, like every other screen. It used to underline the wordmark
+     alone, which read as a different page. */
+  border-bottom: 2px solid var(--accent);
 }
 
 .mark {
   font-size: var(--t-min);
   letter-spacing: 0.16em;
-  align-self: flex-start;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--accent);
+}
+
+/* Centred in whatever room is left, so the field sits near the thumb rather
+   than hard against the header. */
+.body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.75rem;
+  padding: 1.5rem 0;
+}
+
+.intro {
+  min-width: 0;
 }
 
 .title {
@@ -25,7 +53,7 @@
   font-weight: 600;
   font-size: clamp(2rem, 8vw, var(--t-2xl));
   line-height: 1.2;
-  margin: 1.5rem 0 0.75rem;
+  margin: 0 0 0.75rem;
   color: var(--ink);
 }
 
@@ -33,7 +61,11 @@
   font-size: var(--t-md);
   line-height: 1.6;
   color: var(--ink);
-  margin: 0 0 1.75rem;
+  margin: 0;
+}
+
+.form {
+  min-width: 0;
 }
 
 .label {
@@ -66,6 +98,11 @@
   border-color: var(--ink);
 }
 
+.input[aria-invalid="true"] {
+  border-color: var(--ink);
+  border-width: 3px;
+}
+
 .input::placeholder {
   color: var(--ink-soft);
   opacity: 1;
@@ -87,6 +124,7 @@
   border-radius: var(--radius);
 }
 
+/* Only while the answer is in flight. */
 .button:disabled {
   background: var(--surface-quiet);
   color: var(--ink-soft);
@@ -97,7 +135,7 @@
 .error {
   display: flex;
   gap: 0.5rem;
-  margin-top: 1rem;
+  margin: 1rem 0 0;
   padding: 0.75rem 0.875rem;
   font-size: var(--t-sm);
   font-weight: 500;
@@ -114,8 +152,72 @@
 }
 
 .footnote {
-  margin-top: 1.75rem;
+  margin: 0;
   font-size: var(--t-min);
   line-height: 1.6;
   color: var(--ink-soft);
+  flex: 0 0 auto;
+}
+
+/* A short screen — an older, smaller phone, or a browser with a toolbar
+   eating the top and bottom. Everything tightens so the field and the one
+   button are both on screen without scrolling. Nothing drops below 1rem. */
+@media (max-height: 40rem) {
+  .page {
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  .body {
+    gap: 1rem;
+    padding: 0.75rem 0;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .lede {
+    font-size: var(--t-min);
+    line-height: 1.5;
+  }
+
+  .input,
+  .button {
+    min-height: 3.5rem;
+  }
+
+  .footnote {
+    font-size: var(--t-min);
+  }
+}
+
+/* A phone turned sideways. Portrait stacks; here there is width to spare and
+   no height, so the words go beside the field rather than above it, and the
+   one control on the page stays on screen without scrolling. */
+@media (min-width: 34rem) and (max-height: 34rem) {
+  .page {
+    max-width: 52rem;
+    padding: 1rem 1.25rem 1.25rem;
+  }
+
+  .body {
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem 0;
+  }
+
+  .intro,
+  .form {
+    flex: 1 1 0;
+  }
+
+  .title {
+    font-size: 1.625rem;
+  }
+
+  .lede {
+    font-size: var(--t-sm);
+  }
 }

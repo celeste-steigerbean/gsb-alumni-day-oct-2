@@ -614,6 +614,36 @@ The arrows are for the presenter who wants to get somewhere now.
 
 ---
 
+## The way in
+
+`/unlock` is the first thing anyone sees, so two things matter more here than
+anywhere else: the one field and the one button have to be on screen without
+scrolling, whichever way the phone is held, and the button must never look
+dead.
+
+**The button is no longer disabled on arrival.** It used to be greyed out
+until something was typed, which meant the primary action on the first screen
+of the session was always dead when you got there — and a disabled control
+cannot tell you why it will not work. It is live from the start, and an empty
+submit answers with "Type the word from the slide at the front, then press Go
+in."
+
+**A phone turned sideways puts the words beside the field** rather than above
+it. In portrait the field was on screen and the button was not; there is width
+to spare in landscape and no height, so the layout goes to two columns under
+`(min-width: 34rem) and (max-height: 34rem)`.
+
+**A short screen tightens.** Under `max-height: 40rem` — an older, smaller
+phone, or a browser with toolbars eating both ends — the title, the lede and
+the control heights all come down so both the field and the button clear the
+fold. Nothing drops below 1rem.
+
+**The header rule runs the full width**, as it does on every other screen. It
+used to underline the wordmark alone, which made this page read as a different
+site.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -703,3 +733,17 @@ Re-verified after the projected board pass:
   shown
 - Dashboard, submit and unlock unchanged: zero contrast failures at AA and
   AAA, zero tap targets under 44px, no console errors
+
+Re-verified after the unlock pass, at eight viewports (375x667, 390x844,
+360x640, 320x568, 667x375, 844x390, 768x1024, 1440x900):
+
+- The field **and** the button are on screen without scrolling at every one of
+  them, and no page scrolls sideways
+- The button is live on arrival everywhere
+- Empty submit, a wrong code and the right code each do the right thing: two
+  announced messages and a redirect to `/board`, with the message clearing as
+  soon as anybody types
+- Zero contrast failures at AA and AAA and zero text under 16px in portrait,
+  landscape and at 320px wide
+- rem sizing confirmed to respond to the root font size — at 24px the heading
+  goes 32px to 48px and the field 24px to 36px
