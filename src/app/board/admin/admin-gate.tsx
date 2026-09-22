@@ -14,7 +14,7 @@ export function AdminGate({ configured }: { configured: boolean }) {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className={styles.shell} data-surface="dark">
+    <div className={styles.shell}>
       <main className={styles.gate}>
         <Wordmark className={styles.mark} />
         <h1 className={styles.gateTitle}>Session control</h1>
@@ -53,7 +53,12 @@ export function AdminGate({ configured }: { configured: boolean }) {
             <button type="submit" className={styles.gateButton} disabled={pending}>
               {pending ? "Checking" : "Open"}
             </button>
-            {message ? <p className={styles.gateError}>{message}</p> : null}
+            {message ? (
+            <p className={styles.gateError} role="alert">
+              <span className={styles.errorMark} aria-hidden="true">{"\u26A0"}</span>
+              <span>{message}</span>
+            </p>
+          ) : null}
           </form>
         ) : null}
       </main>

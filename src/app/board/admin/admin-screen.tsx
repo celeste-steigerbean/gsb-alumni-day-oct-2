@@ -145,12 +145,15 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
     .join(" / ");
 
   return (
-    <div className={styles.shell} data-surface="dark">
+    <div className={styles.shell}>
       <main className={styles.page}>
         <header className={styles.head}>
           <Wordmark className={styles.mark} />
           <span className={styles.headRight}>
-            <span className={styles.liveDot} data-stale={stale ? "true" : "false"} aria-hidden="true" />
+            <span className={styles.liveState} data-stale={stale ? "true" : "false"}>
+              <span className={styles.liveDot} aria-hidden="true" />
+              {stale ? "Reconnecting" : "Live"}
+            </span>
             <button
               type="button"
               className={styles.tool}

@@ -431,11 +431,16 @@ Light-on-dark is the harder read for an ageing eye: the pupil opens wider, so
 any uncorrected astigmatism smears pale type into its own background. Paper
 avoids that, and it beats screen glare in a bright room.
 
-**The presenter screens keep the dark ground.** `/board/live`,
-`/board/matrix` and `/board/admin` are unchanged — burgundy and champagne, as
-the slide deck is. A projector throws light, so a dark field is right there for
-exactly the reason paper is right on a phone. They opt in with
-`data-surface="dark"`, which re-points the semantic tokens.
+**The dashboard reads paper too.** `/board/admin` is the presenter's laptop
+and follows the same rules: real weights, AAA contrast, no state told by
+colour alone. It is wider and denser than a phone, not dimmer.
+
+**The projected screens keep the dark ground.** `/board/live` and
+`/board/matrix` stay burgundy and champagne, as the slide deck is. A projector
+throws light, so a dark field is right there for exactly the reason paper is
+right on a phone. They opt in with `data-surface="dark"`, which re-points the
+semantic tokens; the dashboard's matrix flips to dark the moment it is thrown
+full screen.
 
 ### The gold problem
 
@@ -497,6 +502,68 @@ set down.
 
 ---
 
+## The matrix: fitting, and paging
+
+Two problems the grid used to have, and what replaced them.
+
+### Text is fitted to its cell, not cut at a line count
+
+The old grid clamped a task at four lines and hid the rest, which is the worst
+possible failure for a grid whose whole job is showing what people wrote. Now
+every note's slot has a definite height and the text is *shrunk* until all of
+it fits.
+
+Both layouts are CSS Grid with definite row heights — that is what makes a
+"fit" possible at all, since a table row treats height as a minimum and grows.
+The markup stays a `<table>`, because that is what this data is, and
+`display: contents` hands the cells to the grid.
+
+`FitText` binary-searches whole pixels between a floor and a ceiling, five
+reflows for a range this size, re-running only when the text or the box
+actually changes (a `ResizeObserver`, coalesced to one measurement a frame).
+
+| Surface | Floor | Ceiling | Why |
+| --- | --- | --- | --- |
+| Dashboard | 11px | 16px | Desk distance, dense grid, and the full table sits below it |
+| Projection | height ÷ 77 | height ÷ 45 | 14–24px at 1080p, and the same *proportions* at 720p |
+
+The projected bounds scale with the screen because a projected image is
+stretched to the wall: what matters is the share of the picture a line takes,
+not its pixel count. Fixed bounds tuned for 1080p clipped every note on a 720p
+projector. The chrome around the grid scales the same way, in `vw`/`vh`.
+
+**This is the one place the 16px floor does not apply**, and it is deliberate.
+The room's own screens keep it. This is the presenter's laptop and a projected
+wall, where the alternative to shrinking a long task is cutting it in half.
+
+### Rows are as tall as their contents
+
+Each row is built from however many slots its busiest visible cell needs, so a
+row nobody has answered collapses to one slot instead of six full-height boxes
+of nothing. The projection keeps six equal rows — the structure is the point on
+a wall, and it has a fixed height to divide up.
+
+### Arrows page sideways
+
+Nothing scrolls horizontally any more. A column is either on the page whole or
+not at all.
+
+- **`‹` and `›`** in the panel header, with `1–4 of 9` between them. They wrap
+  at both ends.
+- **Left and right arrow keys**, when the focus is inside the panel. They are
+  ignored while you are typing in the search box.
+- On the projection the same arrows work, and a manual turn **restarts the
+  rotation timer** so a click is not overtaken a second later. The countdown
+  bar along the bottom restarts with it.
+- Auto-rotation only advances the page; a full lap of the columns is what turns
+  a crowded cell over to its next answer.
+
+Defaults: four columns a page. Two answers a cell on the dashboard (the rest
+counted as `+N more`, with the full table underneath), one on the projection so
+it can rotate. `?columns=` and `?notes=` still tune the projected route.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -551,5 +618,20 @@ auditing every rendered text node against its real computed background:
 - The composed question is grammatical with neither choice made, with the task
   type alone, and with both
 - Three submissions fill the three slots and unlock the board
-- `/board/live`, `/board/matrix` and `/board/admin` still render on the dark
-  ground, unchanged
+- `/board/live` and `/board/matrix` still render on the dark ground, unchanged
+
+Re-verified after the dashboard pass, with a maximum-length task seeded into a
+crowded cell:
+
+- **Zero** clipped notes on the dashboard at 1440x1000 and 1100x900, and on the
+  projection at 1920x1080 and 1280x720 — measured as content height against box
+  height for every note on screen, not by eye
+- Notes land at 13–16px on the dashboard and 12–24px on the projection,
+  shrinking only as far as the text needs
+- **Zero** contrast failures at AA and at AAA on the dashboard and its gate,
+  and **zero** tap targets under 44px, matrix filter headings included
+- Paging wraps at both ends, by button and by arrow key, and the arrow keys stay
+  out of the way while the search box has focus
+- The last page shows a single function at its normal width, not stretched
+- Heading filters, full screen, Escape back out, and the attendee flow all still
+  work, with no console errors

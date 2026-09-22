@@ -1,51 +1,63 @@
 /* The coverage matrix, in two sizes.
-   Dashboard: a panel on a laptop, clickable, scrollable.
-   Projection: fills the screen, turns itself over, nothing to click.
-
-   Text is deliberately bright in both. This is read from the back of a room,
-   and a muted grey that looks refined on a laptop disappears on a projector. */
+ *
+ *   Dashboard  — the presenter's laptop, on paper. Headings filter, arrows
+ *                page sideways, rows are a fixed height.
+ *   Projection — fills the screen on the dark ground, turns itself over on a
+ *                timer, nothing to click.
+ *
+ * Both are CSS Grid with definite row heights. That is what lets a task be
+ * *fitted* to its box instead of clipped at a line count: the note knows how
+ * tall it is, so the text can be shrunk until all of it shows. A table row
+ * treats height as a minimum and grows anyway, which is why the markup stays
+ * a table — that is what this data is — while display:contents hands the
+ * cells to the grid.
+ */
 
 .panel {
-  --note-size: 14px;
-  --label-size: 14px;
-  --col-width: 230px;
-  --row-width: 150px;
-  --gap: 6px;
+  --label-size: var(--t-min);
+  --row-width: 11rem;
+  /* One note's slot. A row is built from however many slots its busiest cell
+     needs, so the grid is as tall as its contents and no taller. Sized so a
+     140 character task — the longest anyone can submit — still lands at a
+     comfortable size in a four column page rather than at the floor. */
+  --slot-h: 6.75rem;
+  --row-height: 16rem;
+  --gap: 0.5rem;
 
   position: relative;
-  padding: 20px 22px 18px;
-  /* The body is paper now, so this subtree states its own ink rather than
-     inheriting burgundy onto a burgundy ground. */
-  color: var(--ivory);
-  background: var(--panel-inset);
-  border: 1px solid rgba(201, 169, 110, 0.18);
+  padding: 1.25rem 1.25rem 1rem;
+  color: var(--ink);
+  background: var(--surface-sunk);
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius);
 }
 
-/* Only the dedicated projector route hides the cursor. An expanded dashboard
-   panel still needs a pointer to find its way back out. */
-.panel[data-variant="projection"] {
-  cursor: none;
-}
-
+/* Everything here scales with the picture. Hard pixels tuned for 1920x1080
+   left a 720p projector with a row header eating a fifth of the width and no
+   room left for the answers. */
 .panel[data-layout="projection"] {
-  --note-size: 22px;
-  --label-size: 23px;
-  --col-width: 330px;
-  --row-width: 235px;
-  --gap: 10px;
+  --label-size: clamp(15px, 1.25vw, 23px);
+  --row-width: clamp(130px, 12.5vw, 235px);
+  --gap: clamp(6px, 0.55vw, 10px);
 
   position: fixed;
   inset: 0;
   display: flex;
   flex-direction: column;
-  padding: 26px 34px 22px;
+  padding: clamp(14px, 1.4vh, 26px) clamp(16px, 1.8vw, 34px) clamp(12px, 1.2vh, 22px);
+  color: var(--ivory);
   background: var(--midnight);
   border: 0;
   border-radius: 0;
   overflow: hidden;
   user-select: none;
   z-index: 40;
+}
+
+/* Only the dedicated projector route hides the cursor. An expanded dashboard
+   panel still needs a pointer to find its way back out. */
+.panel[data-variant="projection"] {
+  cursor: none;
 }
 
 /* An invisible strip along the top edge. Touching it brings the chrome down;
@@ -64,45 +76,100 @@
 
 .head {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 1rem;
+  margin-bottom: 1rem;
   flex: 0 0 auto;
 }
 
 .headTools {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
   flex: 0 0 auto;
 }
 
+.title {
+  font-size: var(--t-base);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
 .expand {
-  min-height: 38px;
-  padding: 9px 16px;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--gold);
-  background: transparent;
-  border: 1px solid var(--gold);
+  min-height: 2.75rem;
+  padding: 0.625rem 1rem;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--page);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
   white-space: nowrap;
 }
 
-.panel[data-layout="projection"] .expand {
-  min-height: 46px;
-  padding: 11px 20px;
-  font-size: 18px;
+.expand:hover {
+  background: var(--surface);
 }
 
-.title {
-  font-size: var(--label-size);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  margin: 0 0 18px;
-  font-weight: 300;
+/* Paging ----------------------------------------------------------------- */
+
+.pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pageButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: var(--t-lg);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--on-accent);
+  background: var(--accent);
+  border: 2px solid var(--on-accent);
+  border-radius: var(--radius);
+}
+
+.pageButton:hover {
+  background: var(--ink);
+  color: var(--page);
+}
+
+.pageCount {
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.panel[data-layout="projection"] .pageButton {
+  width: 46px;
+  height: 46px;
+  font-size: 26px;
+  color: var(--midnight);
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.panel[data-layout="projection"] .pageCount {
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  color: var(--ivory);
+}
+
+.empty {
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  margin: 0;
 }
 
 /* Hidden until asked for. The title and the way out are for the presenter,
@@ -113,7 +180,6 @@
   left: 0;
   right: 0;
   z-index: 55;
-  align-items: center;
   padding: 18px 34px 20px;
   margin: 0;
   background: linear-gradient(
@@ -139,25 +205,9 @@
 .panel[data-layout="projection"] .title {
   font-family: var(--serif);
   font-size: 34px;
-  text-transform: none;
+  font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--ivory);
-  margin-bottom: 0;
-}
-
-.pager {
-  font-size: 24px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--gold);
-  font-variant-numeric: lining-nums tabular-nums;
-  font-feature-settings: "lnum" 1, "tnum" 1;
-}
-
-.empty {
-  font-size: 15px;
-  color: var(--muted);
-  margin: 0;
 }
 
 .panel[data-layout="projection"] .empty {
@@ -167,8 +217,12 @@
   margin: auto;
 }
 
+/* The grid --------------------------------------------------------------- */
+
 .scroll {
-  overflow-x: auto;
+  /* Nothing scrolls sideways any more: the arrows page instead, so a column
+     is either on screen whole or not at all. */
+  overflow: visible;
 }
 
 .panel[data-layout="projection"] .scroll {
@@ -178,199 +232,194 @@
 }
 
 .matrix {
-  border-collapse: separate;
-  border-spacing: var(--gap);
-  margin: 0 calc(var(--gap) * -1);
-  table-layout: fixed;
-}
-
-/* Six equal rows, always. A crowded cell used to blow out its row and push
-   the last three task types off the bottom of the screen, which loses the one
-   structure the whole exercise is built on.
-
-   A table row treats height as a minimum and grows anyway, so the projected
-   grid is laid out with CSS Grid instead. The markup stays a table, which is
-   what this data is, and display:contents hands the cells to the grid. */
-.panel[data-layout="projection"] .matrix {
   display: grid;
-  grid-template-columns: var(--row-width) repeat(var(--cols, 4), minmax(0, 1fr));
-  grid-template-rows: auto repeat(6, minmax(0, 1fr));
+  /* Capped, so the last page — which can hold a single function — shows that
+     column at its normal width instead of stretching it across the panel. The
+     cap is above what four columns need on a laptop, so it only bites when
+     there is nothing to fill the space with. */
+  grid-template-columns: var(--row-width) repeat(var(--cols, 4), minmax(0, 24rem));
+  grid-template-rows: auto repeat(6, var(--row-height));
+  justify-content: start;
   gap: var(--gap);
   width: 100%;
-  height: 100%;
-  margin: 0;
+  border-collapse: separate;
   border-spacing: 0;
 }
 
-.panel[data-layout="projection"] .matrix thead,
-.panel[data-layout="projection"] .matrix tbody,
-.panel[data-layout="projection"] .matrix tr {
+/* Six equal rows, always. A crowded cell used to blow out its row and push the
+   last three task types off the bottom of the screen, which loses the one
+   structure the whole exercise is built on. */
+.panel[data-layout="projection"] .matrix {
+  /* The wall gets every pixel: no cap, no gap on the right. */
+  grid-template-columns: var(--row-width) repeat(var(--cols, 4), minmax(0, 1fr));
+  grid-template-rows: auto repeat(6, minmax(0, 1fr));
+  justify-content: stretch;
+  height: 100%;
+}
+
+.matrix thead,
+.matrix tbody,
+.matrix tr {
   display: contents;
 }
 
-.panel[data-layout="projection"] .colHead,
-.panel[data-layout="projection"] .rowHead,
-.panel[data-layout="projection"] .cell,
-.panel[data-layout="projection"] .corner {
+.colHead,
+.rowHead,
+.cell,
+.corner {
   width: auto;
   min-width: 0;
   min-height: 0;
-}
-
-.corner {
-  width: var(--row-width);
+  padding: 0;
 }
 
 .colHead {
-  font-weight: 300;
-  vertical-align: bottom;
+  font-weight: 400;
+  align-self: end;
   text-align: left;
-  padding: 0 0 8px;
-  width: var(--col-width);
-  min-width: var(--col-width);
+  padding-bottom: 0.375rem;
 }
 
 .rowHead {
-  font-weight: 300;
-  vertical-align: top;
+  font-weight: 400;
+  align-self: start;
   text-align: left;
-  padding: 4px 14px 0 0;
-  width: var(--row-width);
-  min-width: var(--row-width);
-}
-
-/* The six task types stay put while the functions slide past them. Without
-   this the grid loses its own row labels the moment you scroll right. */
-.panel[data-layout="dashboard"] .rowHead,
-.panel[data-layout="dashboard"] .corner {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  background: var(--panel-inset);
-  /* The table has border-spacing, so the gap beside a sticky cell would let
-     scrolled content show through. Pad it back out and clip it. */
-  box-shadow: 6px 0 0 var(--panel-inset), -22px 0 0 var(--panel-inset);
-}
-
-.panel[data-layout="dashboard"] .corner {
-  z-index: 3;
+  padding: 0.25rem 0.75rem 0 0;
 }
 
 .headButton,
 .headLabel {
   display: block;
+  width: 100%;
   text-align: left;
   font-size: var(--label-size);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  /* Ivory, not muted. These are headings on a projected screen. */
-  color: var(--ivory);
+  letter-spacing: 0.06em;
+  color: var(--ink);
   background: transparent;
-  padding: 4px 2px;
+  padding: 0.375rem 0.25rem;
   border-radius: var(--radius);
   line-height: 1.35;
 }
 
-.headButton:hover,
-.headButton[data-on="true"] {
-  color: var(--gold);
+/* A heading is also a filter, so it is a real target on the dashboard. The
+   projected labels are not buttons and keep their tight box. */
+.panel[data-layout="dashboard"] .headButton {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
 
+/* A filter that is on is underlined as well as coloured. */
+.headButton:hover {
+  color: var(--accent-ink);
+}
+
+.headButton[data-on="true"] {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.panel[data-layout="projection"] .headButton,
 .panel[data-layout="projection"] .headLabel {
   color: var(--gold);
   letter-spacing: 0.16em;
+  font-weight: 300;
 }
 
 .headCount {
-  margin-left: 8px;
+  margin-left: 0.5rem;
   font-family: var(--serif);
   font-size: calc(var(--label-size) + 2px);
+  font-weight: 600;
   letter-spacing: 0;
-  color: var(--muted);
+  color: var(--ink-soft);
   font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
 
 .panel[data-layout="projection"] .headCount {
   color: var(--ivory);
+  font-weight: 400;
 }
+
+/* Cells ------------------------------------------------------------------ */
 
 .cell {
-  vertical-align: top;
-  padding: 0;
+  min-height: 0;
 }
 
-/* An empty cell is still drawn. The gaps are the point of this grid, but a
-   gap the height of its tallest neighbour is just a hole, so the box hugs
-   its own content and the cell around it does the stretching. */
+/* An empty cell is still drawn. The gaps are the point of this grid. */
 .box {
+  display: grid;
+  grid-template-rows: repeat(var(--slots, 1), minmax(0, 1fr));
+  gap: var(--gap);
+  height: 100%;
+  min-height: 0;
   padding: var(--gap);
-  min-height: 46px;
-  border: 1px solid rgba(201, 169, 110, 0.14);
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
   border-radius: var(--radius);
   background: transparent;
 }
 
+.box[data-filled="true"] {
+  border-color: var(--line);
+  background: var(--page);
+}
+
 .panel[data-layout="projection"] .box {
-  min-height: 0;
-  height: 100%;
-  padding: 8px;
-  overflow: hidden;
+  padding: clamp(5px, 0.5vw, 8px);
   border-color: rgba(201, 169, 110, 0.22);
 }
 
-.box[data-filled="true"] {
+.panel[data-layout="projection"] .box[data-filled="true"] {
   border-color: var(--hairline-strong);
   background: rgba(59, 27, 34, 0.55);
 }
 
+/* A note's slot has a definite height, which is what FitText measures against.
+   overflow:hidden is the backstop for a task so long it is still too big at
+   the smallest size allowed. */
 .note {
-  font-size: var(--note-size);
-  line-height: 1.5;
-  color: var(--ivory);
-  background: var(--panel);
-  border: 1px solid rgba(201, 169, 110, 0.24);
-  border-left: 2px solid var(--gold);
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.5rem 0.625rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--accent);
   border-radius: var(--radius);
-  padding: 9px 11px;
   overflow-wrap: break-word;
 }
 
 .panel[data-layout="projection"] .note {
-  padding: 10px 12px;
+  padding: clamp(6px, 0.9vh, 10px) clamp(8px, 0.8vw, 12px);
+  color: var(--ivory);
+  background: var(--panel);
+  border-color: rgba(201, 169, 110, 0.24);
+  border-left: 2px solid var(--gold);
+}
+
+/* Unitless, so it scales with whatever size the text is fitted to. */
+.noteText {
+  display: block;
   line-height: 1.35;
-  min-height: 0;
 }
 
-/* The clamp lives on its own element. Put it on the note itself and
-   overflow:hidden clips at the padding box, which leaves the bottom padding
-   as a window for a fourth line to show through. */
-.panel[data-layout="projection"] .noteText {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  max-height: calc(1.35em * 4);
-}
-
-.note + .note {
-  margin-top: var(--gap);
-}
-
-/* An example is a prop, not somebody's answer. The dashed edge says so.
-   It keeps full brightness: dimming it made it unreadable on a projector. */
+/* An example is a prop, not somebody's answer. The dashed edge says so. */
 .note[data-example="true"] {
   border-left-style: dashed;
 }
 
 .more {
-  display: block;
-  margin-top: var(--gap);
-  font-size: var(--label-size);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--gold);
+  align-self: end;
+  font-size: var(--t-min);
+  font-weight: 600;
+  color: var(--accent-ink);
 }
 
 .panel[data-layout="projection"] .more {
@@ -393,19 +442,13 @@
 }
 
 .caption {
-  margin: 16px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--hairline);
-  font-size: 15px;
+  margin: 1rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--line-soft);
+  font-size: var(--t-sm);
   line-height: 1.6;
-  color: var(--ivory);
+  color: var(--ink);
   flex: 0 0 auto;
-}
-
-.panel[data-layout="projection"] .caption {
-  font-size: 24px;
-  padding-top: 12px;
-  margin-top: 12px;
 }
 
 /* A quiet countdown to the next turn, so a change never feels like a glitch. */
@@ -427,5 +470,13 @@
   }
   to {
     width: 100%;
+  }
+}
+
+/* A narrow laptop or a split screen: fewer, taller cells beat a squeeze. */
+@media (max-width: 900px) {
+  .panel {
+    --row-width: 8rem;
+    --slot-h: 7.5rem;
   }
 }
