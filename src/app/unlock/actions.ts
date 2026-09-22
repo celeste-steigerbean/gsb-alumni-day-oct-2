@@ -8,6 +8,7 @@ import {
   codeMatches,
   roomToken,
 } from "@/lib/room-access";
+import { COOKIE_PATH } from "@/lib/base-path";
 import { isSecureRequest } from "@/lib/secure-cookie";
 
 export async function enterRoom(code: string): Promise<{ ok: boolean; message?: string }> {
@@ -22,7 +23,7 @@ export async function enterRoom(code: string): Promise<{ ok: boolean; message?: 
       httpOnly: true,
       sameSite: "lax",
       secure: await isSecureRequest(),
-      path: "/",
+      path: COOKIE_PATH,
       maxAge: ROOM_COOKIE_MAX_AGE,
     });
   }

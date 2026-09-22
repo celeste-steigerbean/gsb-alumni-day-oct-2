@@ -25,7 +25,13 @@ export function AdminGate({ configured }: { configured: boolean }) {
     }
 
     startTransition(async () => {
-      const result = await signIn(password);
+      let result: Awaited<ReturnType<typeof signIn>>;
+      try {
+        result = await signIn(password);
+      } catch {
+        setMessage("Could not reach the server. Check your connection, then press Open again.");
+        return;
+      }
       if (result.ok) {
         setMessage(null);
         router.refresh();

@@ -24,7 +24,13 @@ export function UnlockForm({ next }: { next: string }) {
     }
 
     startTransition(async () => {
-      const result = await enterRoom(code);
+      let result: Awaited<ReturnType<typeof enterRoom>>;
+      try {
+        result = await enterRoom(code);
+      } catch {
+        setMessage("Could not reach the board. Check your connection, then press Go in again.");
+        return;
+      }
       if (result.ok) {
         router.replace(next);
         router.refresh();

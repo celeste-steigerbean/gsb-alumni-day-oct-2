@@ -134,7 +134,21 @@ export function SubmitScreen({ initial }: Props) {
     setError(null);
 
     startTransition(async () => {
-      const result = await submitEntry({ bucket, functionLabel, task });
+      let result: SubmitResult;
+      try {
+        result = await submitEntry({ bucket, functionLabel, task });
+      } catch {
+        // A dropped connection, a redeploy mid-session, or a request the
+        // server refused. Uncaught, this replaced the whole screen with "This
+        // page couldn't load" and threw away what they had typed.
+        setError({
+          ok: false,
+          field: "form",
+          message:
+            "That did not reach the board. Your words are still here. Check your connection, then press the button again.",
+        });
+        return;
+      }
       if (!result.ok) {
         setError(result);
         return;

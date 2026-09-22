@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 
+import { COOKIE_PATH } from "./base-path";
 import { isSecureRequest } from "./secure-cookie";
 
 export const VISITOR_COOKIE = "sb_board_id";
@@ -11,7 +12,7 @@ export async function cookieOptions() {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: await isSecureRequest(),
-    path: "/",
+    path: COOKIE_PATH,
     maxAge: COOKIE_MAX_AGE,
   };
 }

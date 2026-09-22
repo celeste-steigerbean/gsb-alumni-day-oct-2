@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { BoardPayload } from "./board-payload";
+import { withBase } from "./base-path";
 
 export type Transport = "sse" | "poll";
 export type ConnectionStatus = "connecting" | "live" | "stalled";
@@ -60,7 +61,7 @@ export function useLiveBoard(options: {
     try {
       const params = new URLSearchParams({ mode });
       if (versionRef.current) params.set("v", versionRef.current);
-      const response = await fetch(`/api/entries?${params.toString()}`, {
+      const response = await fetch(withBase(`/api/entries?${params.toString()}`), {
         cache: "no-store",
         headers: { accept: "application/json" },
       });
@@ -118,7 +119,7 @@ export function useLiveBoard(options: {
     }
     closeSource();
 
-    const source = new EventSource(`/api/entries/stream?mode=${mode}`);
+    const source = new EventSource(withBase(`/api/entries/stream?mode=${mode}`));
     sourceRef.current = source;
 
     source.onmessage = (event) => {

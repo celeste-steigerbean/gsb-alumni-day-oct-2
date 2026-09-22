@@ -9,6 +9,7 @@ import { SEED_COOKIE_ID } from "@/lib/entries-constants";
 import { SEED_BATCH_SIZE, SEED_EXAMPLES } from "@/lib/seed-examples";
 import { displayFunctionLabel } from "@/lib/functions";
 import { Wordmark } from "@/components/wordmark";
+import { withBase } from "@/lib/base-path";
 import {
   clearSeeds,
   refreshEntries,
@@ -24,6 +25,19 @@ import styles from "./admin.module.css";
 const REFRESH_MS = 4_000;
 const STALE_AFTER_MS = 12_000;
 const TOP_FUNCTIONS = 8;
+
+/**
+ * Runs a dashboard action and turns a failed request into an ordinary error.
+ * Uncaught, a dropped connection replaced the whole dashboard with "This page
+ * couldn't load", in the middle of a session.
+ */
+async function safely(run: () => Promise<AdminResult>): Promise<AdminResult> {
+  try {
+    return await run();
+  } catch {
+    return { ok: false, message: "Could not reach the server. Check the connection and try again." };
+  }
+}
 
 function timeOnly(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -69,7 +83,10 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
         } else {
           setError(result.message);
         }
-      });
+      })
+      // A missed pull is not an error worth shouting about: the live dot turns
+      // to "Reconnecting" on its own after a few seconds without a sync.
+      .catch(() => {});
 
     const id = setInterval(pull, REFRESH_MS);
     const onVisible = () => document.visibilityState === "visible" && pull();
@@ -160,7 +177,11 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
               data-variant="quiet"
               onClick={() =>
                 startTransition(async () => {
-                  await signOut();
+                  try {
+                    await signOut();
+                  } catch {
+                    // Refreshing still shows the true state either way.
+                  }
                   router.refresh();
                 })
               }
@@ -219,7 +240,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
             type="button"
             className={styles.tool}
             disabled={pending}
-            onClick={() => startTransition(async () => absorb(await seedBoard()))}
+            onClick={() => startTransition(async () => absorb(await safely(() => seedBoard())))}
           >
             Add {SEED_BATCH_SIZE} examples
           </button>
@@ -228,17 +249,17 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
             className={styles.tool}
             data-variant="quiet"
             disabled={pending || stats.seeded === 0}
-            onClick={() => startTransition(async () => absorb(await clearSeeds()))}
+            onClick={() => startTransition(async () => absorb(await safely(() => clearSeeds())))}
           >
             Remove the examples
           </button>
-          <a className={styles.tool} href="/api/admin/export">
+          <a className={styles.tool} href={withBase("/api/admin/export")}>
             Export CSV
           </a>
-          <a className={styles.tool} data-variant="quiet" href="/board/matrix" target="_blank">
+          <a className={styles.tool} data-variant="quiet" href={withBase("/board/matrix")} target="_blank">
             Project the matrix
           </a>
-          <a className={styles.tool} data-variant="quiet" href="/board/live" target="_blank">
+          <a className={styles.tool} data-variant="quiet" href={withBase("/board/live")} target="_blank">
             Open board screen
           </a>
         </div>
@@ -341,7 +362,7 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
                                 ),
                               );
                               startTransition(async () => {
-                                absorb(await toggleHidden(entry.id, !entry.hidden));
+                                absorb(await safely(() => toggleHidden(entry.id, !entry.hidden)));
                                 setBusyId(null);
                               });
                             }}

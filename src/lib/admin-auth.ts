@@ -3,6 +3,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
 import { isSecureRequest } from "./secure-cookie";
+import { COOKIE_PATH } from "./base-path";
 
 export const ADMIN_COOKIE = "sb_board_admin";
 
@@ -49,12 +50,14 @@ export async function grantAdmin(): Promise<void> {
     httpOnly: true,
     sameSite: "lax",
     secure: await isSecureRequest(),
-    path: "/",
+    path: COOKIE_PATH,
     maxAge: 60 * 60 * 12,
   });
 }
 
 export async function revokeAdmin(): Promise<void> {
   const store = await cookies();
-  store.delete(ADMIN_COOKIE);
+  // A delete has to name the path the cookie was set on. Without it this
+  // clears a cookie at "/" that does not exist, and sign-out does nothing.
+  store.delete({ name: ADMIN_COOKIE, path: COOKIE_PATH });
 }

@@ -5,21 +5,25 @@ types generative AI does well. Attendees submit one task from their own company
 on a phone. Their submissions populate a board projected at the front of the
 room.
 
+It lives at **https://steigerbean.com/gsb-alumni-day**. Every path in this
+README is under that address: `/board` means
+`https://steigerbean.com/gsb-alumni-day/board`.
+
 Three screens, one database:
 
-| Screen | Path | Built for |
+| Screen | Address | Built for |
 |---|---|---|
-| Submit | `/board` | Phones. One thumb, no account. Three tasks opens the full board |
-| Matrix | `/board/matrix` | The projector. The slide, live and turning itself over |
-| Board | `/board/live` | The projector, six scrolling columns |
-| Dashboard | `/board/admin` | Your laptop. Every answer, searchable, with moderation |
+| Submit | `steigerbean.com/gsb-alumni-day/board` | Phones. One thumb, no account. Three tasks opens the full board |
+| Matrix | `steigerbean.com/gsb-alumni-day/board/matrix` | The projector. The slide, live and turning itself over |
+| Board | `steigerbean.com/gsb-alumni-day/board/live` | The projector, six scrolling columns |
+| Dashboard | `steigerbean.com/gsb-alumni-day/board/admin` | Your laptop. Every answer, searchable, with moderation |
 
 The submit screen is the only one tuned for a small screen. The dashboard is
 desktop first: it reflows down to phone width without breaking, but it is laid
 out for a laptop.
 
-`/` redirects to `/board`, so the short link on your slide can be the bare
-domain.
+`steigerbean.com/gsb-alumni-day` on its own redirects to the submit screen, and
+that is what the QR code in `qr/` points at, with the room code attached.
 
 ---
 
@@ -54,7 +58,8 @@ Set them for **Production**, **Preview** and **Development**, then redeploy.
 
 ### 4. Confirm the database is live
 
-Open `https://your-domain/api/health`. You want:
+Open `https://steigerbean.com/gsb-alumni-day/api/health` (or the same path on
+the project's own `.vercel.app` address). You want:
 
 ```json
 {
@@ -707,6 +712,77 @@ all.
 
 ---
 
+## On steigerbean.com
+
+steigerbean.com is its own Vercel project, built from the
+`steiger-bean-website` repository. This board is a second project. The website
+forwards `/gsb-alumni-day` to the board with a **rewrite**, so the visitor's
+address bar never leaves steigerbean.com. Vercel calls this pattern multi-zones.
+
+A domain can only be attached to one Vercel project, which is why it is a
+rewrite from the website rather than adding steigerbean.com to this project.
+
+### What this project does to make that work
+
+| Setting | Why |
+| --- | --- |
+| `basePath: "/gsb-alumni-day"` in `next.config.ts` | Every page, asset, API call and redirect lives under the path the website forwards |
+| Cookies scoped to `/gsb-alumni-day` | Otherwise every page of steigerbean.com would be sent the board's cookies, the admin one included |
+| `serverActions.allowedOrigins` includes `steigerbean.com` | Behind a rewrite the browser says steigerbean.com while the app may see its own vercel.app host. Next refuses a form post when those disagree, which would reject every submission |
+| Redirects built on the request's own origin | Next turns a same-host redirect into a relative one, which the browser resolves against steigerbean.com. An absolute vercel.app redirect would bounce people off the domain and lose their cookie |
+| The old unprefixed paths redirect | Anything bookmarked on the `.vercel.app` address before the move, `?code=` links included, lands in the right place |
+
+`EXTRA_ALLOWED_ORIGINS` (comma separated) trusts another domain later without a
+code change.
+
+### Setting it up
+
+1. **This project:** deploy the latest `main`. Note its production address on
+   the project's overview page, the `…vercel.app` one, for example
+   `https://gsb-alumni-day-oct-2.vercel.app`. Use the production domain, not a
+   per-deployment URL: those change with every deploy.
+2. **The website project:** merge the rewrite in `next.config.mjs` (the change is
+   written, see below), then in its **Settings → Environment Variables** add
+   `GSB_BOARD_ORIGIN` = that production address, scheme and host only, no path,
+   no trailing slash. Redeploy the website.
+3. Open `https://steigerbean.com/gsb-alumni-day/api/health` and confirm
+   `ok: true`.
+4. Scan the QR code with your own phone. You should land on the submit screen,
+   already unlocked, with steigerbean.com in the address bar.
+
+Left unset, `GSB_BOARD_ORIGIN` adds no rewrite at all, so the rest of the
+website can never be broken by a missing value.
+
+### The live stream through a rewrite
+
+The board and the phones hold a Server-Sent Events stream open. Through a
+rewrite it may be buffered or cut sooner than on the direct address. Nothing
+depends on it: the watchdog notices a silent stream and falls back to polling
+every three seconds, so the worst case is updates a couple of seconds slower.
+
+---
+
+## The QR code
+
+`qr/gsb-alumni-day-qr.svg` for slides, since it scales to any size without
+blurring, and `qr/gsb-alumni-day-qr.png` at 2048px for anything else.
+
+It encodes `https://steigerbean.com/gsb-alumni-day?code=GSB26`. The code in the
+link is what makes scanning unlock the board with nothing to type, so:
+
+- **If you change `ROOM_PASSCODE`, the QR code stops unlocking.** People can
+  still type the new code, but regenerate the QR code to match
+- **Scan it yourself before the slide is final.** It only works once the
+  website rewrite is live
+
+Brand burgundy on ivory, 16.6:1, dark on light the way scanners expect. Error
+correction M, 33 by 33 squares: less redundancy than H, but bigger squares, and
+on a slide read from the back of a hall bigger squares scan better. A
+decoder reads the exact address at every size tested, down to two pixels per
+square, far below anything a projected slide reaches.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -828,3 +904,21 @@ the button on screen without scrolling at all four, zero contrast failures at
 AA and AAA, nothing under 16px and no target under 44px. Empty, wrong and
 right passwords each do the right thing, Enter submits, Show and Hide switch
 the field and report their state, and Tab runs mark, field, Show, Open.
+
+Re-verified after the move to steigerbean.com/gsb-alumni-day, twice: once
+through the real website project built locally with its rewrite, and once
+through a deliberately hostile proxy that tells the board its own host and
+hides the one the browser used, which is the worst a rewrite can do. Through
+both:
+
+- Scanning the QR address unlocks and lands on the submit screen, and every
+  redirect stays relative, so the browser only ever talks to the front address
+- Cookies are set on the front address, scoped to `/gsb-alumni-day`
+- Three submissions, the reveal, the live board picking up a second phone
+  without a reload, admin sign-in, CSV export, sign-out and a typed code all
+  work, with no 5xx responses and no page errors
+- Without the trusted origin the hostile proxy's submissions are refused,
+  which is the failure the setting exists for; with it, all are accepted
+- A refused or dropped submission shows a message and keeps what was typed,
+  instead of replacing the screen with "This page couldn't load"
+
