@@ -46,7 +46,10 @@ const ARRIVAL_MS = 1_600;
  * shrinking is cutting the sentence in half — which is worse for a grid whose
  * entire job is showing what people actually wrote.
  */
-const FIT = { dashboard: { min: 11, max: 16 } } as const;
+// The ceiling is high on purpose: a short task grows to fill its box rather
+// than sitting small in the corner of it. Sizes differ from cell to cell, and
+// that is fine; what is not fine is a box three quarters empty or one cut off.
+const FIT = { dashboard: { min: 11, max: 26 } } as const;
 
 /**
  * The projector's bounds scale with the screen it is thrown on.
@@ -54,12 +57,12 @@ const FIT = { dashboard: { min: 11, max: 16 } } as const;
  * A projected image is stretched to the wall, so what matters is the share of
  * the picture a line of text takes, not its pixel count. Fixed bounds tuned
  * for 1080p clipped every note on a 720p projector; these give the same
- * proportions on both. At 1080 they work out to 14 and 24.
+ * proportions on both. At 1080 they work out to 14 and 40.
  */
 function projectionFit(viewportHeight: number) {
   return {
     min: Math.max(11, Math.round(viewportHeight / 77)),
-    max: Math.max(16, Math.round(viewportHeight / 45)),
+    max: Math.max(18, Math.round(viewportHeight / 27)),
   };
 }
 
@@ -290,11 +293,10 @@ export function CoverageMatrix({
   }, [entries]);
 
   const select = (next: Selection) => onSelect?.(next);
-  const surface = projecting ? "dark" : undefined;
 
   if (functions.length === 0) {
     return (
-      <section className={styles.panel} data-surface={surface} data-variant={variant} data-layout={variant}>
+      <section className={styles.panel} data-variant={variant} data-layout={variant}>
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
         <p className={styles.empty}>
           {projecting
@@ -337,7 +339,7 @@ export function CoverageMatrix({
     <section
       ref={panelRef}
       className={styles.panel}
-      data-surface={surface}
+     
       data-variant={variant}
       data-layout={projecting ? "projection" : "dashboard"}
       style={{ "--cols": shown.length } as React.CSSProperties}

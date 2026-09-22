@@ -46,8 +46,9 @@
   display: flex;
   flex-direction: column;
   padding: clamp(14px, 1.4vh, 26px) clamp(16px, 1.8vw, 34px) clamp(12px, 1.2vh, 22px);
-  color: var(--ivory);
-  background: var(--midnight);
+  /* The same paper as the dashboard it expands from. */
+  color: var(--ink);
+  background: var(--surface-sunk);
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -156,15 +157,11 @@
   width: 46px;
   height: 46px;
   font-size: 26px;
-  color: var(--midnight);
-  background: var(--gold);
-  border-color: var(--gold);
 }
 
 .panel[data-layout="projection"] .pageCount {
   font-size: 24px;
-  letter-spacing: 0.08em;
-  color: var(--ivory);
+  letter-spacing: 0.04em;
 }
 
 .empty {
@@ -183,12 +180,8 @@
   z-index: 55;
   padding: 18px 34px 20px;
   margin: 0;
-  background: linear-gradient(
-    to bottom,
-    var(--midnight) 0%,
-    var(--midnight) 72%,
-    rgba(46, 15, 21, 0) 100%
-  );
+  background: var(--page);
+  border-bottom: 2px solid var(--accent);
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
@@ -206,15 +199,15 @@
 .panel[data-layout="projection"] .title {
   font-family: var(--serif);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.01em;
-  color: var(--ivory);
 }
 
 .panel[data-layout="projection"] .empty {
   font-family: var(--serif);
   font-size: 46px;
-  color: var(--ivory);
+  font-weight: 600;
+  color: var(--ink);
   margin: auto;
 }
 
@@ -329,9 +322,7 @@
 
 .panel[data-layout="projection"] .headButton,
 .panel[data-layout="projection"] .headLabel {
-  color: var(--gold);
-  letter-spacing: 0.16em;
-  font-weight: 300;
+  letter-spacing: 0.08em;
 }
 
 .headCount {
@@ -345,10 +336,7 @@
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
 
-.panel[data-layout="projection"] .headCount {
-  color: var(--ivory);
-  font-weight: 400;
-}
+
 
 /* Cells ------------------------------------------------------------------ */
 
@@ -377,12 +365,6 @@
 
 .panel[data-layout="projection"] .box {
   padding: clamp(5px, 0.5vw, 8px);
-  border-color: rgba(201, 169, 110, 0.22);
-}
-
-.panel[data-layout="projection"] .box[data-filled="true"] {
-  border-color: var(--hairline-strong);
-  background: rgba(59, 27, 34, 0.55);
 }
 
 /* A note's slot has a definite height, which is what FitText measures against.
@@ -402,10 +384,6 @@
 
 .panel[data-layout="projection"] .note {
   padding: clamp(6px, 0.9vh, 10px) clamp(8px, 0.8vw, 12px);
-  color: var(--ivory);
-  background: var(--panel);
-  border-color: rgba(201, 169, 110, 0.24);
-  border-left: 2px solid var(--gold);
 }
 
 /* Unitless, so it scales with whatever size the text is fitted to. */

@@ -65,7 +65,10 @@ export function UnlockForm({ next }: { next: string }) {
             type="text"
             inputMode="text"
             autoComplete="off"
-            autoCapitalize="characters"
+            // Shown exactly as typed. It used to force capitals, on screen and
+            // on the phone keyboard, which made a lowercase code look wrong
+            // while it was being typed. The check ignores case either way.
+            autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
             enterKeyHint="go"

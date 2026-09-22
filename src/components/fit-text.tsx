@@ -51,18 +51,36 @@ export function FitText({
 
   useLayoutEffect(() => {
     fit();
-    const host = ref.current?.parentElement;
-    if (!host || typeof ResizeObserver === "undefined") return;
+    const el = ref.current;
+    const host = el?.parentElement;
+    if (!el || !host) return;
+
     // Coalesce to one measurement per frame: a page turn resizes every note.
     let frame = 0;
-    const observer = new ResizeObserver(() => {
+    let live = true;
+    const schedule = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(fit);
-    });
-    observer.observe(host);
+      frame = requestAnimationFrame(() => live && fit());
+    };
+
+    // The box, for a resize or a page turn. The text itself too: when the brand
+    // font arrives after the first fit, Montserrat sets wider than the stand-in
+    // it was measured in, the words overflow, and the box has not changed size
+    // so nothing else would notice. That is how text ended up cut off on a
+    // first visit over real wifi and never locally, where fonts load at once.
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
+    observer?.observe(host);
+    observer?.observe(el);
+
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    fonts?.addEventListener?.("loadingdone", schedule);
+    fonts?.ready?.then(schedule);
+
     return () => {
+      live = false;
       cancelAnimationFrame(frame);
-      observer.disconnect();
+      observer?.disconnect();
+      fonts?.removeEventListener?.("loadingdone", schedule);
     };
   }, [fit, text]);
 

@@ -440,12 +440,13 @@ avoids that, and it beats screen glare in a bright room.
 and follows the same rules: real weights, AAA contrast, no state told by
 colour alone. It is wider and denser than a phone, not dimmer.
 
-**The projected screens keep the dark ground.** `/board/live` and
-`/board/matrix` stay burgundy and champagne, as the slide deck is. A projector
-throws light, so a dark field is right there for exactly the reason paper is
-right on a phone. They opt in with `data-surface="dark"`, which re-points the
-semantic tokens; the dashboard's matrix flips to dark the moment it is thrown
-full screen.
+**The matrix reads paper everywhere**, full screen included: the expanded
+dashboard view and `/board/matrix` are one implementation, on the same ground
+as the dashboard it expands from.
+
+**The live board keeps the dark ground.** `/board/live` stays burgundy and
+champagne, as the slide deck is. It opts in with `data-surface="dark"`, which
+re-points the semantic tokens.
 
 ### The gold problem
 
@@ -529,8 +530,17 @@ actually changes (a `ResizeObserver`, coalesced to one measurement a frame).
 
 | Surface | Floor | Ceiling | Why |
 | --- | --- | --- | --- |
-| Dashboard | 11px | 16px | Desk distance, dense grid, and the full table sits below it |
-| Projection | height ÷ 77 | height ÷ 45 | 14–24px at 1080p, and the same *proportions* at 720p |
+| Dashboard | 11px | 26px | Desk distance, dense grid, and the full table sits below it |
+| Projection | height ÷ 77 | height ÷ 27 | 14–40px at 1080p, and the same *proportions* at 720p |
+
+The ceiling is high on purpose. A short task grows to fill its box instead of
+sitting small in one corner of it, so sizes differ from cell to cell. What is
+not acceptable is a box three quarters empty or one cut off.
+
+It re-fits when the text itself changes size, not only the box. The brand font
+can arrive after the first fit, on a first visit over real wifi, and Montserrat
+sets wider than the stand-in it was measured in; with only the box watched,
+nothing noticed the words overflowing, because the box had not moved.
 
 The projected bounds scale with the screen because a projected image is
 stretched to the wall: what matters is the share of the picture a line takes,
@@ -921,4 +931,16 @@ both:
   which is the failure the setting exists for; with it, all are accepted
 - A refused or dropped submission shows a message and keeps what was typed,
   instead of replacing the screen with "This page couldn't load"
+
+Re-verified after the full-screen and fitting fixes, with maximum-length tasks
+seeded across the grid and the brand font held back by 1.5 and by 4 seconds:
+
+- **Zero** clipped notes on the dashboard, the full-screen view and
+  `/board/matrix`, at 1440x900, 1280x800, 1920x1080 and 1280x720, however late
+  the font arrived. Before the fix, a late font left two or three cut off
+- Text fills 95 to 100 percent of its box, against 79 percent before
+- The full-screen view and `/board/matrix` on paper, with zero contrast
+  failures at AA and AAA and nothing under 44px to tap, the reveal bar included
+- The room code field shows exactly what is typed, and `gsb26` in lowercase
+  still unlocks
 
