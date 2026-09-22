@@ -53,6 +53,21 @@ export function FunctionCombobox({ value, onChange, invalid }: Props) {
     return suggestFunctionOption(value);
   }, [value, isPreloaded, dismissedSuggestion]);
 
+  // Opening a picker used to do nothing you could see: the list unfolds below
+  // the trigger, and on a phone that put one option of six on screen, on a
+  // laptop none at all. Bring the control to the top so its options have the
+  // rest of the screen.
+  useEffect(() => {
+    if (!open) return;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const frame = requestAnimationFrame(() =>
+      wrap.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: MouseEvent | TouchEvent) => {

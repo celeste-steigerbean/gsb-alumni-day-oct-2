@@ -6,6 +6,9 @@
 
 .wrap {
   position: relative;
+  /* Room for the step number and label above, so scrolling the control to the
+     top does not hide what it is asking for. */
+  scroll-margin-top: 4.5rem;
 }
 
 .trigger {
@@ -88,7 +91,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 50vh;
+  /* The trigger is scrolled to the top when this opens, so most of the screen
+     is below it. Capped in rem as well so a tall monitor does not get an
+     absurdly long list. */
+  max-height: min(60vh, 26rem);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }

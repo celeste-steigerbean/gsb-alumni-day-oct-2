@@ -644,6 +644,42 @@ site.
 
 ---
 
+## The submit screen, on the screen it is on
+
+Two defects that a contrast audit never catches, because neither is a colour.
+
+### Opening a picker used to do nothing you could see
+
+The list unfolds below its trigger. With the trigger already well down a long
+form, that put **one option of six on screen on a phone, and none at all on a
+laptop** — you tapped "Choose a kind of task", the caret flipped, and nothing
+appeared to happen. On the session's main interaction.
+
+Both pickers now bring themselves to the top of the screen when they open, so
+the options have the rest of it. Measured across eight viewports, options
+visible on opening went from 0–3 to 2–6 — six of six on a normal phone held
+upright, and the list scrolls for the rest in landscape. The list is capped at
+`min(60vh, 26rem)`, and `scroll-margin-top` keeps the step number and its
+label above the control rather than scrolled off.
+
+### The submit button was disabled on arrival
+
+The same defect the unlock screen had: greyed out until all three steps were
+filled, which is to say dead every time anybody first looked at it, with no
+way to say why. It is live from the start and answers in order:
+
+| Missing | What it says |
+| --- | --- |
+| Kind of task | "Pick which kind of task this is." |
+| Function | "Pick the function this sits in." |
+| Task, empty | "Write the task itself. A few words is plenty." |
+| Task, too short | "A few more words, N characters at least." |
+
+Each message is announced with `role="alert"` and scrolls its own step back
+into view, so the answer to "why did nothing happen" is always on screen.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.
@@ -747,3 +783,14 @@ Re-verified after the unlock pass, at eight viewports (375x667, 390x844,
   landscape and at 320px wide
 - rem sizing confirmed to respond to the root font size — at 24px the heading
   goes 32px to 48px and the field 24px to 36px
+
+Re-verified after the submit pass, at 375x667, 390x844, 360x640, 320x568,
+667x375, 844x390, 768x1024 and 1440x900:
+
+- Opening a picker puts 2 to 6 of its 6 options on screen at every one of
+  them, against 0 to 3 before, and the submit button is live at all of them
+- Every missing step is named in order, announced, and scrolled back into view
+- A whole submission still lands in slot one and unlocks on the third
+- Zero contrast failures at AA and AAA, zero text under 16px, zero tap targets
+  under 44px and no sideways scroll on submit, unlock and the dashboard
+- The projected board and matrix are unchanged, with nothing clipped

@@ -81,12 +81,6 @@ export function SubmitScreen({ initial }: Props) {
   }, [view.entries, showBoard]);
 
   const taskLength = task.trim().length;
-  const canSubmit =
-    Boolean(bucket) &&
-    functionLabel.trim().length > 0 &&
-    taskLength >= TASK_MIN_LENGTH &&
-    taskLength <= TASK_MAX_LENGTH &&
-    !pending;
 
   /** For anyone staring at the choices with nothing coming. */
   const shuffle = useCallback(() => {
@@ -96,12 +90,47 @@ export function SubmitScreen({ initial }: Props) {
     setError(null);
   }, [bucket]);
 
+  /** Put the step that needs attention back on screen. */
+  function showStep(field: "bucket" | "function" | "task") {
+    requestAnimationFrame(() => {
+      document.getElementById(`step-${field}`)?.scrollIntoView({
+        block: "start",
+        behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
+    });
+  }
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    // The button is never dead on arrival, so what is missing gets said out
+    // loud here rather than left for somebody to work out from a grey button
+    // that cannot explain itself.
     if (!bucket) {
-      setError({ ok: false, field: "bucket", message: "Pick a kind of task." });
+      setError({ ok: false, field: "bucket", message: "Pick which kind of task this is." });
+      showStep("bucket");
       return;
     }
+    if (!functionLabel.trim()) {
+      setError({ ok: false, field: "function", message: "Pick the function this sits in." });
+      showStep("function");
+      return;
+    }
+    if (taskLength < TASK_MIN_LENGTH) {
+      setError({
+        ok: false,
+        field: "task",
+        message:
+          taskLength === 0
+            ? "Write the task itself. A few words is plenty."
+            : `A few more words, ${TASK_MIN_LENGTH - taskLength} characters at least.`,
+      });
+      showStep("task");
+      return;
+    }
+
     setError(null);
 
     startTransition(async () => {
@@ -231,7 +260,7 @@ export function SubmitScreen({ initial }: Props) {
             Stuck? Fill these in for me
           </button>
 
-          <section className={styles.step}>
+          <section className={styles.step} id="step-bucket">
             <div className={styles.stepHead}>
               <span className={styles.stepNumber}>1</span>
               <h2 className={styles.stepLabel}>Which kind of task</h2>
@@ -252,7 +281,7 @@ export function SubmitScreen({ initial }: Props) {
             ) : null}
           </section>
 
-          <section className={styles.step}>
+          <section className={styles.step} id="step-function">
             <div className={styles.stepHead}>
               <span className={styles.stepNumber}>2</span>
               <h2 className={styles.stepLabel}>Which function</h2>
@@ -273,7 +302,7 @@ export function SubmitScreen({ initial }: Props) {
             ) : null}
           </section>
 
-          <section className={styles.step}>
+          <section className={styles.step} id="step-task">
             <div className={styles.stepHead}>
               <span className={styles.stepNumber}>3</span>
               <h2 className={styles.stepLabel}>The task</h2>
@@ -320,7 +349,7 @@ export function SubmitScreen({ initial }: Props) {
             ) : null}
           </section>
 
-          <button type="submit" className={styles.submit} disabled={!canSubmit}>
+          <button type="submit" className={styles.submit} disabled={pending}>
             {pending
               ? "Sending"
               : unlocked

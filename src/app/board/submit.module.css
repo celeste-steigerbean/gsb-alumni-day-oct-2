@@ -282,6 +282,8 @@
 
 .step {
   margin-bottom: 2rem;
+  /* A step brought back after a failed submit keeps a little air above it. */
+  scroll-margin-top: 1rem;
 }
 
 .stepHead {
