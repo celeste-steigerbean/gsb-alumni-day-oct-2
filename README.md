@@ -800,6 +800,10 @@ at `https://forms.gle/ifZxmKQ9hSc9B4Zw6`. Same colours and settings; it is a
 shorter link, so a coarser 29 by 29 grid. It points at the form directly and
 has nothing to do with the board's room code.
 
+`qr/form-tLBJiFZw-qr.svg` and `.png` are a third code, for the Google Form at
+`https://forms.gle/tLBJiFZw92DMmZPQ7`. Same colours, settings and 29 by 29 grid
+as the feedback form's code, and likewise independent of the room code.
+
 Brand burgundy on ivory, 16.6:1, dark on light the way scanners expect. Error
 correction M, 33 by 33 squares: less redundancy than H, but bigger squares, and
 on a slide read from the back of a hall bigger squares scan better. A
