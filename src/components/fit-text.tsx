@@ -9,6 +9,16 @@ import { useCallback, useLayoutEffect, useRef } from "react";
  */
 const FONT_WAIT_MS = 800;
 
+/** How many font faces have finished loading. Changes only when one lands. */
+function loadedFontCount(): number {
+  if (typeof document === "undefined" || !document.fonts) return 0;
+  let count = 0;
+  document.fonts.forEach((face) => {
+    if (face.status === "loaded") count++;
+  });
+  return count;
+}
+
 /**
  * Text, sized to the box it is in.
  *
@@ -34,11 +44,22 @@ export function FitText({
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
+  // What the text was last fitted for. See below.
+  const fittedFor = useRef("");
 
   const fit = useCallback(() => {
     const el = ref.current;
     const host = el?.parentElement;
     if (!el || !host) return;
+
+    // Same box, same words, same fonts: same answer, so touch nothing. This is
+    // what makes the fit impossible to loop. A browser can report a resize or
+    // a finished font as often as it likes; unless one of those three really
+    // changed, the text is never rewritten. Safari reports font loads far
+    // more often than Chrome, and re-fitting on every report is the likeliest
+    // way the dashboard came to flicker there while staying still here.
+    const key = `${host.clientWidth}x${host.clientHeight}|${loadedFontCount()}|${min}-${max}|${text}`;
+    if (key === fittedFor.current) return;
 
     let lo = min;
     let hi = max;
@@ -54,11 +75,12 @@ export function FitText({
       }
     }
     el.style.fontSize = `${best}px`;
+    fittedFor.current = key;
     // Hidden until this first runs (see the stylesheet). The server sends the
     // text at a default size, and showing it would mean every note visibly
     // snapping to its real size a moment after the page appears.
     el.dataset.fit = "";
-  }, [min, max]);
+  }, [min, max, text]);
 
   useLayoutEffect(() => {
     const el = ref.current;
@@ -84,15 +106,17 @@ export function FitText({
       frame = requestAnimationFrame(() => live && fit());
     };
 
-    // The box, for a resize or a page turn. The text itself too: when the brand
-    // font arrives after the first fit, Montserrat sets wider than the stand-in
-    // it was measured in, the words overflow, and the box has not changed size
-    // so nothing else would notice. That is how text ended up cut off on a
-    // first visit over real wifi and never locally, where fonts load at once.
+    // The box, for a resize or a page turn. Not the text itself: watching the
+    // element this function resizes is a loop waiting for a browser that
+    // measures a hair differently each time.
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule);
     observer?.observe(host);
-    observer?.observe(el);
 
+    // The fonts. When the brand font arrives after the first fit, Montserrat
+    // sets wider than the stand-in it was measured in and the words overflow a
+    // box that has not changed size. That is how text ended up cut off on a
+    // first visit over real wifi. The count of loaded fonts is part of what a
+    // fit is keyed on, so a report with nothing new behind it does nothing.
     const fonts = typeof document === "undefined" ? undefined : document.fonts;
     fonts?.addEventListener?.("loadingdone", schedule);
 

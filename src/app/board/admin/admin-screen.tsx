@@ -80,7 +80,12 @@ export function AdminScreen({ initial }: { initial: AdminEntry[] }) {
           setError(null);
           lastSyncRef.current = Date.now();
           setLastSync(lastSyncRef.current);
-        } else {
+        } else if (!result.message.startsWith("Could not read")) {
+          // Signed out, or no password set: those stay true until somebody
+          // acts, so say so. A read that failed once is not news: the live
+          // dot turns to "Reconnecting" on its own if it keeps failing, and a
+          // banner that appeared and vanished with every refresh would push
+          // the whole page down and back up again.
           setError(result.message);
         }
       })

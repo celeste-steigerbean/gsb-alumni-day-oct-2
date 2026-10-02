@@ -547,10 +547,24 @@ in its real font at its real size. Past that it fits in the stand-in and re-fits
 when the font lands: one resize, on a slow first visit only, since the font is
 cached after.
 
-It re-fits when the text itself changes size, not only the box. The brand font
-can arrive after the first fit, on a first visit over real wifi, and Montserrat
-sets wider than the stand-in it was measured in; with only the box watched,
-nothing noticed the words overflowing, because the box had not moved.
+It re-fits when a font lands, not only when the box moves. The brand font can
+arrive after the first fit, on a first visit over real wifi, and Montserrat sets
+wider than the stand-in it was measured in; with only the box watched, nothing
+noticed the words overflowing, because the box had not moved.
+
+**A fit is keyed on what it depends on, and a repeat is a no-op.** The key is
+the box's width and height, the number of fonts loaded, the bounds and the
+text. A resize report or a font event with the same key behind it does not
+touch the text at all. An earlier version also watched the text element itself,
+which is the element the fit resizes: harmless in Chrome, but a browser that
+measures a hair differently on each pass (or, like Safari, reports font loads
+far more often) can turn that into a loop, which is what "the dashboard is
+still flickering" most likely was. Checked in Chromium by firing a font event
+every frame for five seconds: zero rewrites on the dashboard, the full screen
+or the projection. Expanding to full screen re-fits every note once, in a single
+frame, and then nothing changes. A background refresh that fails once no longer
+flashes a banner (which pushed the page down and back); the live dot already
+says "Reconnecting" if it keeps failing.
 
 The projected bounds scale with the screen because a projected image is
 stretched to the wall: what matters is the share of the picture a line takes,
