@@ -56,6 +56,21 @@ const FIT = { dashboard: { min: 11, max: 26 } } as const;
 const FILL = 0.85;
 
 /**
+ * Full screen lets the presenter pick one text size for every box. Fitting on
+ * its own sizes each note to its own box, so short ones come out larger than
+ * long ones; a chosen size makes them match. A note that cannot fit at that
+ * size still shrinks, only as far as it has to, because cutting a sentence off
+ * is worse than one box being a little smaller than the rest.
+ *
+ * Remembered in this browser only, so the laptop on the lectern keeps its
+ * choice through a reload and nobody else's screen is affected.
+ */
+const SIZE_KEY = "gsb-matrix-text-size";
+const SIZE_MIN = 10;
+const SIZE_MAX = 80;
+const clampSize = (n: number) => Math.min(SIZE_MAX, Math.max(SIZE_MIN, Math.round(n)));
+
+/**
  * The projector's bounds scale with the screen it is thrown on.
  *
  * A projected image is stretched to the wall, so what matters is the share of
@@ -107,6 +122,71 @@ export function CoverageMatrix({
   }, [projecting]);
 
   const fit = projecting ? projectionFit(screenHeight) : FIT.dashboard;
+
+  // null is Auto: every note fitted to its own box.
+  const [textSize, setTextSize] = useState<number | null>(null);
+  // What the number field shows while somebody is typing, which can be
+  // briefly out of range ("4" on the way to "48").
+  const [sizeDraft, setSizeDraft] = useState("");
+  useEffect(() => {
+    try {
+      const saved = Number(window.localStorage.getItem(SIZE_KEY));
+      if (saved >= SIZE_MIN && saved <= SIZE_MAX) setTextSize(saved);
+    } catch {
+      // No storage (a private window, blocked site data): start on Auto.
+    }
+  }, []);
+  useEffect(() => setSizeDraft(textSize === null ? "" : String(textSize)), [textSize]);
+
+  const chooseSize = (next: number | null) => {
+    setTextSize(next);
+    try {
+      if (next === null) window.localStorage.removeItem(SIZE_KEY);
+      else window.localStorage.setItem(SIZE_KEY, String(next));
+    } catch {
+      // Still applies for this visit.
+    }
+  };
+
+  // Stepping off Auto starts from what is on screen now, the middle of the
+  // fitted sizes, so the first click is a small change rather than a jump.
+  const stepSize = (delta: number) => {
+    if (textSize !== null) return chooseSize(clampSize(textSize + delta));
+    const sizes = [...(panelRef.current?.querySelectorAll<HTMLElement>("[data-fit]") ?? [])]
+      .map((el) => parseFloat(el.style.fontSize))
+      .filter(Number.isFinite)
+      .sort((a, b) => a - b);
+    const middle = sizes.length > 0 ? sizes[sizes.length >> 1] : Math.round(fit.max * FILL);
+    chooseSize(clampSize(middle + delta));
+  };
+
+  // How many notes on screen came out smaller than the chosen size, so the
+  // presenter can see the largest size at which every box matches. Counted
+  // whenever a note's size is written, which is after every fit.
+  const [shrunk, setShrunk] = useState(0);
+  useEffect(() => {
+    const root = panelRef.current;
+    if (!projecting || textSize === null || !root) {
+      setShrunk(0);
+      return;
+    }
+    const count = () => {
+      let n = 0;
+      root.querySelectorAll<HTMLElement>("[data-fit]").forEach((el) => {
+        if (parseFloat(el.style.fontSize) < textSize) n++;
+      });
+      setShrunk(n);
+    };
+    count();
+    const watcher = new MutationObserver(count);
+    watcher.observe(root, { subtree: true, attributes: true, attributeFilter: ["style"] });
+    return () => watcher.disconnect();
+  }, [projecting, textSize]);
+
+  const noteFit =
+    projecting && textSize !== null
+      ? { min: Math.min(fit.min, textSize), max: textSize, fill: 1 }
+      : { ...fit, fill: FILL };
 
   async function toggleExpanded(event: React.MouseEvent<HTMLButtonElement>) {
     const next = !expanded;
@@ -339,6 +419,57 @@ export function CoverageMatrix({
       </span>
     ) : null;
 
+  const sizer = projecting ? (
+    <span className={styles.sizer} role="group" aria-label="Text size">
+      <span className={styles.sizerLabel}>Text size</span>
+      <button
+        type="button"
+        className={styles.pageButton}
+        onClick={() => stepSize(-1)}
+        aria-label="Smaller text"
+      >
+        <span aria-hidden="true">{"\u2212"}</span>
+      </button>
+      <input
+        type="number"
+        inputMode="numeric"
+        className={styles.sizeInput}
+        min={SIZE_MIN}
+        max={SIZE_MAX}
+        value={sizeDraft}
+        placeholder="Auto"
+        aria-label={`Text size in pixels, ${SIZE_MIN} to ${SIZE_MAX}. Empty is Auto.`}
+        onChange={(event) => {
+          const raw = event.target.value;
+          setSizeDraft(raw);
+          if (raw === "") return chooseSize(null);
+          const n = Number(raw);
+          if (Number.isFinite(n) && n >= SIZE_MIN && n <= SIZE_MAX) chooseSize(Math.round(n));
+        }}
+        onBlur={() => setSizeDraft(textSize === null ? "" : String(textSize))}
+      />
+      <button
+        type="button"
+        className={styles.pageButton}
+        onClick={() => stepSize(1)}
+        aria-label="Larger text"
+      >
+        <span aria-hidden="true">+</span>
+      </button>
+      <button
+        type="button"
+        className={styles.expand}
+        aria-pressed={textSize === null}
+        onClick={() => chooseSize(null)}
+      >
+        Auto
+      </button>
+      <span className={styles.sizerNote} aria-live="polite">
+        {shrunk > 0 ? `${shrunk} smaller to fit` : ""}
+      </span>
+    </span>
+  ) : null;
+
   return (
     <section
       ref={panelRef}
@@ -353,6 +484,7 @@ export function CoverageMatrix({
       <header className={styles.head}>
         <h2 className={styles.title}>Six tasks, and every function you have</h2>
         <span className={styles.headTools}>
+          {sizer}
           {pager}
           {variant === "dashboard" ? (
             <button type="button" className={styles.expand} onClick={toggleExpanded}>
@@ -453,9 +585,9 @@ export function CoverageMatrix({
                           >
                             <FitText
                               text={entry.task}
-                              min={fit.min}
-                              max={fit.max}
-                              fill={FILL}
+                              min={noteFit.min}
+                              max={noteFit.max}
+                              fill={noteFit.fill}
                               className={styles.noteText}
                             />
                           </article>

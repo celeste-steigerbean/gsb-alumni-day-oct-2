@@ -544,6 +544,14 @@ floor). Packed to the very edges the grid read as crowded; at 85% the text
 still fills roughly two thirds of its box's height and nothing clips. Smaller
 than a size that fits always fits, so this cannot cut anything off.
 
+**Full screen has a text size control** in the bar that slides down from
+the top: minus, a number you can type (10–80px), plus, and Auto. Auto is the
+fitting above, where every note gets its own size. Choose a number and every
+note that fits at that size uses it; a note too long for its box at that size
+still shrinks, only as far as it must, and the bar says how many did ("2
+smaller to fit"). So the largest number with no such note is the largest size
+at which every box matches. The choice is remembered in that browser only.
+
 Text stays hidden until it has been fitted. The server sends it at a default
 size, and showing that meant every note visibly snapping from 18px to its real
 size a moment after the page appeared, which on a projector reads as flicker. A

@@ -153,6 +153,67 @@
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
 
+/* Text size, full screen only ------------------------------------------- */
+
+.sizer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sizerLabel {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  margin-right: 0.25rem;
+}
+
+.sizeInput {
+  width: 4.5ch;
+  height: 46px;
+  padding: 0 0.5rem;
+  font: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  -moz-appearance: textfield;
+}
+
+.sizeInput::-webkit-inner-spin-button,
+.sizeInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sizeInput::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.sizerNote {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.sizerNote:empty {
+  display: none;
+}
+
+.sizer .expand[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--page);
+  border-color: var(--ink);
+}
+
 .panel[data-layout="projection"] .pageButton {
   width: 46px;
   height: 46px;
