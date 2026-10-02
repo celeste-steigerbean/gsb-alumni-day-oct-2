@@ -24,6 +24,12 @@ export type BoardSnapshot = {
   /** Distinct people behind the visible entries, examples excluded. */
   people: number;
   entries: Entry[];
+  /**
+   * Every entry's id by the phone that sent it, hidden ones included, newest
+   * first. Server only: buildBoardPayload reads one phone's list out of it and
+   * nothing else, so no submitter id ever reaches a browser.
+   */
+  idsByCookie: ReadonlyMap<string, string[]>;
 };
 
 export {
@@ -57,9 +63,24 @@ function toEntry(row: Row): Entry {
 /**
  * A short-lived cache in front of the board read. Sixty phones polling every
  * few seconds collapse into roughly one query per second per instance.
+ *
+ * It also answers "which of these are mine" for every phone. That used to be a
+ * query of its own on every stream tick, uncached: sixty open phones made
+ * about fifty queries a second with nothing happening, all four pool
+ * connections busy, measured. The one read already fetched every row's
+ * submitter, so it builds the answer for all of them at once.
  */
 const CACHE_TTL_MS = 900;
 let cached: { at: number; value: BoardSnapshot } | null = null;
+/**
+ * The read already on its way, shared. When the cache lapses, every stream
+ * that ticks before the refresh returns would otherwise start an identical
+ * query of its own; measured with sixty phones, that herd tripled the idle
+ * query rate.
+ */
+let inflight: Promise<BoardSnapshot> | null = null;
+/** Bumped by every write, so a read that started before it cannot cache. */
+let generation = 0;
 
 function versionOf(entries: Entry[]): string {
   if (entries.length === 0) return "empty";
@@ -74,34 +95,65 @@ export async function getBoardSnapshot(options?: { fresh?: boolean }): Promise<B
   if (!options?.fresh && cached && now - cached.at < CACHE_TTL_MS) {
     return cached.value;
   }
+  // A fresh read, after a write, never rides on one that may have started
+  // before the write landed.
+  if (!options?.fresh && inflight) return inflight;
 
+  const read = readSnapshot(now);
+  if (!options?.fresh) {
+    inflight = read;
+    read.then(
+      () => { if (inflight === read) inflight = null; },
+      () => { if (inflight === read) inflight = null; },
+    );
+  }
+  return read;
+}
+
+async function readSnapshot(now: number): Promise<BoardSnapshot> {
+  const startedIn = generation;
+
+  // Hidden rows too, for ownership only. Hiding somebody's answer takes it off
+  // the board; it does not take back the unlock it earned them.
   const rows = await query<Row & { submitter_cookie_id: string }>(
     `SELECT id, created_at, bucket, function_label, task, hidden, submitter_cookie_id
        FROM entries
-      WHERE hidden = FALSE
       ORDER BY id DESC`,
   );
 
-  const entries = rows.map(toEntry);
+  const visible = rows.filter((row) => !row.hidden);
+  const entries = visible.map(toEntry);
   const people = new Set(
-    rows
+    visible
       .filter((row) => row.submitter_cookie_id !== SEED_COOKIE_ID)
       .map((row) => row.submitter_cookie_id),
   ).size;
+
+  const idsByCookie = new Map<string, string[]>();
+  for (const row of rows) {
+    const list = idsByCookie.get(row.submitter_cookie_id);
+    if (list) list.push(String(row.id));
+    else idsByCookie.set(row.submitter_cookie_id, [String(row.id)]);
+  }
 
   const value: BoardSnapshot = {
     version: versionOf(entries),
     total: entries.length,
     people,
     entries,
+    idsByCookie,
   };
-  cached = { at: now, value };
+  // A write landed while this read was out: what it holds may predate that
+  // write, so it answers its own callers but is not kept for anyone else.
+  if (startedIn === generation) cached = { at: now, value };
   return value;
 }
 
 /** Call after any write so the next read does not serve a stale snapshot. */
 export function invalidateBoardCache(): void {
+  generation++;
   cached = null;
+  inflight = null;
 }
 
 export async function getAdminEntries(): Promise<AdminEntry[]> {
@@ -111,15 +163,6 @@ export async function getAdminEntries(): Promise<AdminEntry[]> {
       ORDER BY id DESC`,
   );
   return rows.map((row) => ({ ...toEntry(row), submitter_cookie_id: row.submitter_cookie_id }));
-}
-
-export async function getEntryIdsForCookie(cookieId: string): Promise<string[]> {
-  if (!cookieId) return [];
-  const rows = await query<{ id: string }>(
-    `SELECT id FROM entries WHERE submitter_cookie_id = $1 ORDER BY id DESC`,
-    [cookieId],
-  );
-  return rows.map((row) => String(row.id));
 }
 
 export async function countRecentForCookie(cookieId: string): Promise<number> {

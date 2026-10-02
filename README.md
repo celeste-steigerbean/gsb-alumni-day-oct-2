@@ -808,6 +808,47 @@ square, far below anything a projected slide reaches.
 
 ---
 
+## Load: sixty phones at once
+
+Tested with sixty simulated phones each holding the live stream open and
+submitting three tasks at random over a minute, a projector watching, and a
+proxy adding latency between the app and Postgres to stand in for a database
+that is not on the same machine.
+
+**What it found.** Every stream tick asked the database which entries were
+that phone's, uncached. Sixty open phones made about fifty queries a second
+with nothing happening, all four pool connections busy. The board read already
+fetched every row's submitter, so it now answers ownership for every phone at
+once, and concurrent reads share the one already in flight instead of starting
+identical ones when the cache lapses.
+
+| 60 phones, ~40ms to the database | Before | After |
+| --- | --- | --- |
+| Database queries per second, idle | 50 | 1 |
+| Database queries per second, while submitting | 63 | 10 |
+| Submission time, 95th percentile | 544 ms | 182 ms |
+| Slowest submission | 631 ms | 227 ms |
+| Submission to projector, 95th percentile | 1.9 s | 1.3 s |
+| Failed submissions | 0 | 0 |
+
+Headroom, after the change: 120 phones submitted 360 of 360 with a 95th
+percentile of 193 ms, and sixty phones with three times the database distance
+(~120 ms) submitted 180 of 180, slowest 577 ms. No stream errors in any run.
+
+Behaviour kept: a hidden entry still counts toward its sender's three, so
+hiding an answer never re-locks anyone's board, and no submitter id reaches a
+browser. A phone ignores a frame that shows fewer of its own entries than it
+already has, since that can only be a server copy taken just before its own
+latest submission landed.
+
+**What this does not test.** Vercel and Neon themselves: which regions they
+are in, a database waking from sleep, and the stream through the
+steigerbean.com rewrite (it falls back to polling every two seconds, which the
+cache makes cheap). Nor the venue's wifi, which is the likeliest thing to go
+wrong on the day.
+
+---
+
 ## Known tradeoffs
 
 Worth knowing before you stand in front of the room.

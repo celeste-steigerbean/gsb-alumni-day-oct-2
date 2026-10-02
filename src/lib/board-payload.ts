@@ -2,7 +2,6 @@ import "server-only";
 
 import {
   getBoardSnapshot,
-  getEntryIdsForCookie,
   type Entry,
 } from "./entries";
 import { REQUIRED_SUBMISSIONS } from "./entries-constants";
@@ -40,10 +39,11 @@ export async function buildBoardPayload(options: {
 }): Promise<BoardPayload> {
   const snapshot = await getBoardSnapshot({ fresh: options.fresh });
 
+  // From the cached read, not a query of its own. See getBoardSnapshot.
   const ownIds =
     options.mode === "live" || !options.visitorId
       ? []
-      : await getEntryIdsForCookie(options.visitorId);
+      : [...(snapshot.idsByCookie.get(options.visitorId) ?? [])];
 
   const ownSet = new Set(ownIds);
   const ownEntries = snapshot.entries

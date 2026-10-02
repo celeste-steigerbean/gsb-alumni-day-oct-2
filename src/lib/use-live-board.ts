@@ -47,12 +47,21 @@ export function useLiveBoard(options: {
   const inFlightRef = useRef(false);
   const mountedRef = useRef(true);
 
+  // A phone's own count only ever goes up: hiding an entry keeps it counted
+  // and nothing deletes a visitor's rows. A frame that arrives with fewer was
+  // built from a server copy of the board taken just before this phone's
+  // latest submission landed, on another instance, and showing it would
+  // briefly re-lock a board that has just opened.
+  const ownCountRef = useRef(options.initial?.ownIds.length ?? 0);
+
   const apply = useCallback((next: BoardPayload) => {
-    versionRef.current = next.version;
     lastFrameRef.current = Date.now();
-    setPayload(next);
     setStatus("live");
     setError(null);
+    if (next.ownIds.length < ownCountRef.current) return;
+    ownCountRef.current = next.ownIds.length;
+    versionRef.current = next.version;
+    setPayload(next);
   }, []);
 
   const fetchOnce = useCallback(async () => {
