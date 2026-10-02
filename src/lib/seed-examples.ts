@@ -10,8 +10,9 @@ export type SeedExample = {
  * Inspiration for the matrix before the room fills it.
  *
  * Four per task type, spread across functions so the grid shows breadth
- * rather than a stripe. Each one names the manual work it replaces, because
- * that is the sentence the exercise is trying to get attendees to write.
+ * rather than a stripe. One plain sentence each, no full stop, written the way
+ * somebody in the room would type it on a phone: either the ask itself or who
+ * does the work by hand today.
  *
  * Added in batches from the dashboard, so the board can be salted lightly
  * before the doors open and topped up if the room is slow to start.
@@ -21,132 +22,132 @@ export const SEED_EXAMPLES: SeedExample[] = [
   {
     bucket: "MONITOR",
     functionLabel: "Compliance",
-    task: "Watch four agency feeds for rules touching our device class. An analyst skims them Monday.",
+    task: "An analyst skims four agency feeds every Monday for rules that touch our devices",
   },
   {
     bucket: "MONITOR",
     functionLabel: "Sales",
-    task: "Flag when a named account changes its pricing page. Nobody checks until a rep notices.",
+    task: "Reps find out a key account changed its pricing when the customer mentions it",
   },
   {
     bucket: "MONITOR",
     functionLabel: "Finance",
-    task: "Tell me when any cost line moves more than five percent. We find it at month end.",
+    task: "We only catch a cost line that jumped five percent at month end",
   },
   {
     bucket: "MONITOR",
     functionLabel: "Board and governance",
-    task: "Watch for our directors appearing on other boards. Our secretary checks once a year.",
+    task: "Our secretary checks once a year for board members appearing on other boards",
   },
 
   // SYNTHESIZE ------------------------------------------------------------
   {
     bucket: "SYNTHESIZE",
     functionLabel: "Marketing",
-    task: "Turn thirty customer interviews into one themes memo. An associate reads every transcript.",
+    task: "An associate reads all thirty customer interviews to write the themes memo",
   },
   {
     bucket: "SYNTHESIZE",
     functionLabel: "Research",
-    task: "Pull a year of field notes into one view of what changed. Nobody has the week it takes.",
+    task: "Pull a year of field notes into what actually changed",
   },
   {
     bucket: "SYNTHESIZE",
     functionLabel: "HR and people",
-    task: "Find the themes across four hundred engagement survey comments. We read a sample.",
+    task: "We read a sample of the four hundred engagement survey comments",
   },
   {
     bucket: "SYNTHESIZE",
     functionLabel: "Customer success",
-    task: "Roll every support ticket this quarter into the five things that keep breaking.",
+    task: "Find the five things that keep breaking in this quarter's support tickets",
   },
 
   // RESTRUCTURE -----------------------------------------------------------
   {
     bucket: "RESTRUCTURE",
     functionLabel: "Strategy",
-    task: "Reshape the offsite notes into a one page plan. A partner does this on the flight home.",
+    task: "A partner turns the offsite notes into a one-page plan on the flight home",
   },
   {
     bucket: "RESTRUCTURE",
     functionLabel: "Operations",
-    task: "Turn a messy runbook into a checklist a new hire can follow on their first day.",
+    task: "Turn our runbook into a checklist a new hire can follow",
   },
   {
     bucket: "RESTRUCTURE",
     functionLabel: "Communications",
-    task: "Rewrite the same update for the board, the staff and the press. We write it three times.",
+    task: "We write the same update three times for the board, staff and press",
   },
   {
     bucket: "RESTRUCTURE",
     functionLabel: "Product",
-    task: "Turn a customer call into a written spec. Our PM does it from memory the next morning.",
+    task: "Our PM writes the spec from memory the morning after a customer call",
   },
 
   // RECONCILE -------------------------------------------------------------
   {
     bucket: "RECONCILE",
     functionLabel: "Finance",
-    task: "Match the CRM pipeline against the billing ledger. Two analysts do it every Friday.",
+    task: "Two analysts match the CRM pipeline to the billing ledger every Friday",
   },
   {
     bucket: "RECONCILE",
     functionLabel: "IT",
-    task: "Find the people in the payroll system who are not in the access directory.",
+    task: "Find people in payroll who aren't in the access directory",
   },
   {
     bucket: "RECONCILE",
     functionLabel: "Legal",
-    task: "Show where the signed contract differs from the template we thought we sent.",
+    task: "Compare the signed contract against the template we sent",
   },
   {
     bucket: "RECONCILE",
     functionLabel: "Supply chain",
-    task: "Compare what the supplier invoiced against what the warehouse actually received.",
+    task: "Match supplier invoices against what the warehouse received",
   },
 
   // PRESSURE TEST ---------------------------------------------------------
   {
     bucket: "PRESSURE_TEST",
-    functionLabel: "Business development",
-    task: "Argue the seller side of our acquisition thesis. Two partners do this over dinner.",
+    functionLabel: "Corporate development",
+    task: "Argue the seller side of our acquisition thesis",
   },
   {
     bucket: "PRESSURE_TEST",
     functionLabel: "Strategy",
-    task: "Tell me why the three year plan fails. Nobody in the room wants to be that person.",
+    task: "Tell us why the three-year plan fails",
   },
   {
     bucket: "PRESSURE_TEST",
     functionLabel: "Fundraising",
-    task: "Play the sceptical donor and ask the questions we have not rehearsed.",
+    task: "Ask the questions a skeptical donor would ask before the pitch",
   },
   {
     bucket: "PRESSURE_TEST",
     functionLabel: "Engineering",
-    task: "Attack this architecture decision before we commit two quarters of build to it.",
+    task: "Poke holes in the architecture before we spend two quarters building it",
   },
 
   // EVALUATE --------------------------------------------------------------
   {
     bucket: "EVALUATE",
     functionLabel: "Fundraising",
-    task: "Score every inbound grant application against the rubric we published in March.",
+    task: "Score grant applications against our published rubric",
   },
   {
     bucket: "EVALUATE",
     functionLabel: "HR and people",
-    task: "Read two hundred applications against the job spec before a human sees the shortlist.",
+    task: "Screen two hundred job applications against the spec",
   },
   {
     bucket: "EVALUATE",
     functionLabel: "Operations",
-    task: "Rate each vendor response against our own criteria, consistently, at volume.",
+    task: "Rate vendor proposals against our selection criteria",
   },
   {
     bucket: "EVALUATE",
     functionLabel: "Compliance",
-    task: "Check every draft against the policy before it goes out. Our reviewer spot checks.",
+    task: "Our reviewer spot checks drafts against policy before they go out",
   },
 ];
 
