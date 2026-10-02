@@ -31,16 +31,22 @@ function loadedFontCount(): number {
  *
  * The element it measures against is its own parent, so the parent needs a
  * definite height and `overflow: hidden`.
+ *
+ * `fill` is the share of the largest size that fits which the text is set at:
+ * 1 packs the box to its edges, lower leaves air around the words. It never
+ * goes below `min`.
  */
 export function FitText({
   text,
   min,
   max,
+  fill = 1,
   className,
 }: {
   text: string;
   min: number;
   max: number;
+  fill?: number;
   className?: string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -58,7 +64,7 @@ export function FitText({
     // changed, the text is never rewritten. Safari reports font loads far
     // more often than Chrome, and re-fitting on every report is the likeliest
     // way the dashboard came to flicker there while staying still here.
-    const key = `${host.clientWidth}x${host.clientHeight}|${loadedFontCount()}|${min}-${max}|${text}`;
+    const key = `${host.clientWidth}x${host.clientHeight}|${loadedFontCount()}|${min}-${max}x${fill}|${text}`;
     if (key === fittedFor.current) return;
 
     let lo = min;
@@ -74,13 +80,14 @@ export function FitText({
         hi = mid - 1;
       }
     }
-    el.style.fontSize = `${best}px`;
+    // Anything smaller than a size that fits also fits, so this cannot clip.
+    el.style.fontSize = `${Math.max(min, Math.floor(best * fill))}px`;
     fittedFor.current = key;
     // Hidden until this first runs (see the stylesheet). The server sends the
     // text at a default size, and showing it would mean every note visibly
     // snapping to its real size a moment after the page appears.
     el.dataset.fit = "";
-  }, [min, max, text]);
+  }, [min, max, fill, text]);
 
   useLayoutEffect(() => {
     const el = ref.current;

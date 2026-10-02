@@ -51,6 +51,10 @@ const ARRIVAL_MS = 1_600;
 // that is fine; what is not fine is a box three quarters empty or one cut off.
 const FIT = { dashboard: { min: 11, max: 26 } } as const;
 
+// Packed to the edges, the boxes read as crowded. Set at 85% of the largest
+// size that fits, every note keeps a margin of air and still fills its box.
+const FILL = 0.85;
+
 /**
  * The projector's bounds scale with the screen it is thrown on.
  *
@@ -451,6 +455,7 @@ export function CoverageMatrix({
                               text={entry.task}
                               min={fit.min}
                               max={fit.max}
+                              fill={FILL}
                               className={styles.noteText}
                             />
                           </article>

@@ -539,6 +539,11 @@ The ceiling is high on purpose. A short task grows to fill its box instead of
 sitting small in one corner of it, so sizes differ from cell to cell. What is
 not acceptable is a box three quarters empty or one cut off.
 
+Text is then set at 85% of the largest size that fits (`fill`, never below the
+floor). Packed to the very edges the grid read as crowded; at 85% the text
+still fills roughly two thirds of its box's height and nothing clips. Smaller
+than a size that fits always fits, so this cannot cut anything off.
+
 Text stays hidden until it has been fitted. The server sends it at a default
 size, and showing that meant every note visibly snapping from 18px to its real
 size a moment after the page appeared, which on a projector reads as flicker. A
